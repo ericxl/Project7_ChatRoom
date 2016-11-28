@@ -16,7 +16,7 @@ public class ClientObserver extends ObjectOutputStream implements Observer {
 			this.writeObject(arg);
 		} catch (IOException e) {
 			e.printStackTrace();
-		} 
+		}
 	}
 
 }

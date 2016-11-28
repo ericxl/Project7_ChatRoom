@@ -11,7 +11,7 @@ public class MsgType {
     public static final byte LoginRequest = 1;
     public static final byte LogoutRequest = 2;
 
-    // Server-> Client
+    // Server -> Client
     public static final byte RegisterResult = RegisterRequest + _offset;
     public static final byte LoginResult = LoginRequest + _offset;
     public static final byte LogoutResult = LogoutRequest + _offset;
