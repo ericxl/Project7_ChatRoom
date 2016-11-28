@@ -13,8 +13,7 @@ public class ServerMain extends Observable {
 	private Map<String,String> login = new HashMap<>();
 	Map<String,ClientHandler> activeClient = new HashMap<>();
 	Map<String,String> individualChat = new HashMap<>();
-	private int port = 4242;
-	
+
 	public static void main(String[] args) {
 		try {
 			new ServerMain().setUpNetworking();
@@ -24,15 +23,18 @@ public class ServerMain extends Observable {
 	}
 
 	private void setUpNetworking() throws Exception {
-		@SuppressWarnings("resource")
-		ServerSocket serverSock = new ServerSocket(port);
+		ServerSocket serverSock = new ServerSocket(Config.port);
 		InetAddress address = serverSock.getInetAddress();
 		System.out.println(address.getHostAddress());
+
 		while (true) {
-			Socket clientSocket = serverSock.accept();
-			Thread t = new Thread(new ClientHandler(clientSocket));
-			t.start();
-			System.out.println("got a connection");
+			try {
+				Socket clientSocket = serverSock.accept();
+				System.out.println("got a connection");
+				Thread t = new Thread(new ClientHandler(clientSocket));
+				t.start();
+			} catch (Exception e) {
+			}
 		}
 	}
 	
@@ -41,62 +43,39 @@ public class ServerMain extends Observable {
 		private ClientObserver writer;
 		private Socket sock;
 		private String name;
-		private boolean stop= false;
+		private boolean stop = false;
 
 		public ClientHandler(Socket clientSocket) {
 			sock = clientSocket;
 			try {
 				reader = new ObjectInputStream(sock.getInputStream());
 				writer = new ClientObserver(sock.getOutputStream());
-				name = null;
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 
 		public void run() {
-			Message message;
 			while(!stop){
 				try{
-					message = (Message) reader.readObject();
-				}catch (IOException | ClassNotFoundException e) {
+					byte type = reader.readByte();
+					switch(type){
+						case MsgType.LoginRequest:
+							login((LoginRequest)reader.readObject());
+							break;
+						case MsgType.LogoutRequest:
+							logout((LogoutRequest)reader.readObject());
+							break;
+					}
+				} catch (Exception e) {
 					e.printStackTrace();
-					break;
 				}
-				
-				switch(message.getType()){
-				case Message.MESSAGE: 
-					sendMsg(message);
-					break;
-				case Message.LOGIN:
-					login(message);
-					break;
-				case Message.LOGOUT:
-					logout(message);
-					break;
-				case Message.FRIENDS:
-					break;
-				case Message.NEW_LOGIN:
-					addLogin(message);
-					break;
-				case Message.ADDTOGROUP:
-					addToGroup(message);
-					break;
-				case Message.GROUPMESSAGE:
-					groupChat(message);
-					break;
-				case Message.STOP:
-					stop=true;
-					break;
-				}			
+
 			}
-			close();
+			//close();
 		}
 		
-		ClientObserver getClientObserver(){
-			return writer;
-		}
-		void close(){	
+		void close(){
 			if(reader!=null){
 				try {
 					reader.close();
@@ -119,7 +98,8 @@ public class ServerMain extends Observable {
 				}
 			}
 		}
-		
+
+		/*
 		void sendMsg(Message msg){
 			if(msg.getRecipient()==null){
 				writeMsg(new Message(Message.ERROR,"Please specify recipient!"));
@@ -143,27 +123,43 @@ public class ServerMain extends Observable {
 				e.printStackTrace();
 			}
 		}
+*/
+		void send(byte channel, ResultBase result){
+			try {
+				writer.writeByte(channel);
+				writer.writeObject(result);
+				writer.flush();
+			}
+			catch(Exception e){
+
+			}
+		}
 		
-		void login(Message msg){
-			String[] cred = msg.getContent().split(" ");
-			if(activeClient.containsKey(cred[0])){
-				sendMsg(new Message(Message.ERROR,"This account is already logined!"));
+		void login(LoginRequest msg){
+			System.out.println(msg.password);
+			send(MsgType.LoginResult, new LoginResult(true));
+			/*
+			if(activeClient.containsKey(msg.username)){
+				//sendMsg(new Message(Message.ERROR,"This account is already logined!"));
 			}else{
-				if(cred[1].equals(login.get(cred[0]))){
-					name = cred[0];
-					activeClient.put(cred[0], this);
+				if(msg.password.equals(login.get(msg.username))){
+					name = msg.username;
+					activeClient.put(msg.username, this);
 					sendMsg(new Message(0,"Login Successful!"));
 				}else{
 					sendMsg(new Message(Message.ERROR,"Username or password wrong!"));
 				}
 			}
+			*/
 		}
 		
-		void logout(Message msg){
+		void logout(LogoutRequest msg){
+			System.out.println(name + " logging out.");
 			activeClient.remove(name);
 			stop=true;
 		}
-		
+
+		/*
 		void addLogin(Message msg){
 			String[] cred = msg.getContent().split(" ");
 			if(cred.length>2){
@@ -201,7 +197,7 @@ public class ServerMain extends Observable {
 				}
 			}
 		}
-		
+		*/
 	}
 }
 

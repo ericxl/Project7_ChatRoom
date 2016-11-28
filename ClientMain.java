@@ -2,90 +2,104 @@ package assignment7;
 
 import java.io.*;
 import java.net.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 
-public class ClientMain {
-	private JTextArea incoming;
-	private JTextField outgoing;
-	private BufferedReader reader;
-	private PrintWriter writer;
-	private String clientName;
-	
-	
-	public ClientMain(String name){
-		clientName=name;
-	}
-	public void run() throws Exception {
-		initView();
-		setUpNetworking();
-	}
-	
-	public String getClientName(){
-		return clientName;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
+public class ClientMain extends Application {
+	ObjectOutputStream toServer;
+	ObjectInputStream fromServer;
+
+	@Override // Override the start method in the Application class
+	public void start(Stage primaryStage) {
+		// Panel p to hold the label and text field
+		BorderPane paneForTextField = new BorderPane();
+		paneForTextField.setPadding(new Insets(5, 5, 5, 5));
+		paneForTextField.setStyle("-fx-border-color: green");
+		paneForTextField.setLeft(new Label("Enter a radius: "));
+
+		TextField tf = new TextField();
+		tf.setAlignment(Pos.BOTTOM_RIGHT);
+		tf.setOnAction(event -> {
+			try {
+				toServer.writeByte(MsgType.LoginRequest);
+				toServer.writeObject(new LoginRequest("user", "testPass"));
+			}
+			catch (IOException ex) {
+				System.err.println(ex);
+			}
+		});
+		paneForTextField.setCenter(tf);
+
+		BorderPane mainPane = new BorderPane();
+
+		TextArea ta = new TextArea();
+		mainPane.setCenter(new ScrollPane(ta));
+		mainPane.setTop(paneForTextField);
+
+
+		Scene scene = new Scene(mainPane, 450, 200);
+		primaryStage.setTitle("Client");
+		primaryStage.setScene(scene);
+		primaryStage.show();
+
+		try {
+			Socket socket = new Socket(Config.endpoint, Config.port);
+			toServer = new ObjectOutputStream(socket.getOutputStream());
+			fromServer = new ObjectInputStream(socket.getInputStream());
+			Thread t = new Thread(new ServerHandler());
+			t.start();
+			System.out.println("io ready");
+		}
+		catch (IOException ex) {
+			ta.appendText(ex.toString() + '\n');
+		}
 	}
 
-	private void initView() {
-		JFrame frame = new JFrame("Ludicrously Simple Chat Client");
-		JPanel mainPanel = new JPanel();
-		incoming = new JTextArea(15, 50);
-		incoming.setLineWrap(true);
-		incoming.setWrapStyleWord(true);
-		incoming.setEditable(false);
-		JScrollPane qScroller = new JScrollPane(incoming);
-		qScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		qScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-		outgoing = new JTextField(20);
-		JButton sendButton = new JButton("Send");
-		sendButton.addActionListener(new SendButtonListener());
-		mainPanel.add(qScroller);
-		mainPanel.add(outgoing);
-		mainPanel.add(sendButton);
-		frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
-		frame.setSize(650, 500);
-		frame.setVisible(true);
-
-	}
-
-	private void setUpNetworking() throws Exception {
-		@SuppressWarnings("resource")
-		Socket sock = new Socket("127.0.0.1", 4242);
-		InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
-		reader = new BufferedReader(streamReader);
-		writer = new PrintWriter(sock.getOutputStream());
-		System.out.println("networking established");
-		Thread readerThread = new Thread(new IncomingReader());
-		readerThread.start();
-	}
-
-	class SendButtonListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			writer.println(outgoing.getText());
-			writer.flush();
-			outgoing.setText("");
-			outgoing.requestFocus();
+	private void OnLogin(LoginResult result){
+		if(result.success){
+			System.out.println("login success");
+		} else {
+			System.out.println("login failed");
 		}
 	}
 
 	public static void main(String[] args) {
-		try {
-			new ClientMain("").run();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		launch(args);
 	}
 
-	class IncomingReader implements Runnable {
+	class ServerHandler implements Runnable {
+
 		public void run() {
-			String message;
-			try {
-				while ((message = reader.readLine()) != null) {
-					
-						incoming.append(message + "\n");
+			while(true){
+				try{
+					byte type = fromServer.readByte();
+					ResultBase result;
+					switch(type){
+						case MsgType.LoginResult:
+							result = (LoginResult) fromServer.readObject();
+							OnLogin((LoginResult)result);
+							break;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					break;
 				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
+
+			}
+		}
+
+		private void OnLogin(LoginResult result){
+			if(result.success){
+				System.out.println("login success");
+			} else {
+				System.out.println("login failed");
 			}
 		}
 	}
