@@ -5,9 +5,8 @@ import java.net.*;
 import java.util.*;
 
 public class ServerMain extends Observable {
-	private Map<String,String> login = new HashMap<>();
-	private Map<String, AccountInfo> registrations;
-	Map<String,ClientHandler> activeClient = new HashMap<>();
+	private Map<String, AccountInfo> accountDb;
+	Map<String,ClientAPIHandler> onlineClients = new HashMap<>();
 	Map<String,String> individualChat = new HashMap<>();
 
 	public static void main(String[] args) {
@@ -24,11 +23,11 @@ public class ServerMain extends Observable {
 		try {
 			FileInputStream fis = new FileInputStream(Config.databaseFileName);
 			ObjectInputStream ois = new ObjectInputStream(fis);
-			registrations = (Map<String, AccountInfo>) ois.readObject();
+			accountDb = (Map<String, AccountInfo>) ois.readObject();
 			ois.close();
 		}
 		catch(Exception ex){
-			registrations = new HashMap<>();
+			accountDb = new HashMap<>();
 		}
 	}
 
@@ -36,7 +35,7 @@ public class ServerMain extends Observable {
 		try {
 			FileOutputStream fos = new FileOutputStream(Config.databaseFileName);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(registrations);
+			oos.writeObject(accountDb);
 			oos.close();
 		}
 		catch(Exception ex){
@@ -52,21 +51,21 @@ public class ServerMain extends Observable {
 			try {
 				Socket clientSocket = serverSock.accept();
 				System.out.println("got a connection");
-				Thread t = new Thread(new ClientHandler(clientSocket));
+				Thread t = new Thread(new ClientAPIHandler(clientSocket));
 				t.start();
 			} catch (Exception e) {
 			}
 		}
 	}
 	
-	class ClientHandler implements Runnable {
+	class ClientAPIHandler implements Runnable {
 		private ObjectInputStream reader;
 		private ClientObserver writer;
 		private Socket sock;
 		private String name;
 		private boolean stop = false;
 
-		public ClientHandler (Socket clientSocket) {
+		public ClientAPIHandler (Socket clientSocket) {
 			sock = clientSocket;
 			try {
 				reader = new ObjectInputStream(sock.getInputStream());
@@ -85,12 +84,20 @@ public class ServerMain extends Observable {
 						case MsgType.RegisterRequest:
 							register((RegisterRequest) reader.readObject());
 							break;
-
 						case MsgType.LoginRequest:
 							login((LoginRequest)reader.readObject());
 							break;
 						case MsgType.LogoutRequest:
 							logout((LogoutRequest)reader.readObject());
+							break;
+						case MsgType.AddFriendRequest:
+							addFriend((AddFriendRequest) reader.readObject());
+							break;
+						case MsgType.SendPrivateMessageRequest:
+							sendPrivateMessage((SendPrivateMessageRequest) reader.readObject());
+							break;
+						case MsgType.SendGroupMessageRequest:
+							sendGroupMessage((SendGroupMessageRequest) reader.readObject());
 							break;
 					}
 				} catch (Exception e) {
@@ -148,44 +155,98 @@ public class ServerMain extends Observable {
 			}
 		}
 
+		//region APIs
+
 		void register(RegisterRequest req){
-			if(registrations.containsKey(req.username)){
-				send(MsgType.RegisterResult, new RegisterResult(false));
+			if(accountDb.containsKey(req.username)){
+				send(MsgType.RegisterResult, new RegisterResult(ErrorCode.UserAlreadyExists));
 			}
 			else{
+
 				AccountInfo info = new AccountInfo();
 				info.username = req.username;
 				info.displayName = req.displayName;
 				info.email = req.email;
 				info.password = req.password;
-				registrations.put(req.username, info);
+				accountDb.put(req.username, info);
 				saveDatabase();
-				send(MsgType.RegisterResult, new RegisterResult(true));
+				send(MsgType.RegisterResult, new RegisterResult(info.username, info.password, info.displayName, info.email));
+
 			}
 		}
 
 		void login(LoginRequest req){
-			if(!registrations.containsKey(req.username)){
-				send(MsgType.LoginResult, new LoginResult(false));
+			if(!accountDb.containsKey(req.username)){
+				send(MsgType.LoginResult, new LoginResult(ErrorCode.UserDoesNotExist));
 			}
 			else{
-				AccountInfo info = registrations.get(req.username);
+				AccountInfo info = accountDb.get(req.username);
 				if(req.password.equals(info.password)){
 					name = req.username;
-					activeClient.put(req.username, this);
-					send(MsgType.LoginResult, new LoginResult(true));
+					onlineClients.put(req.username, this);
+					send(MsgType.LoginResult, new LoginResult());
 				}
 				else {
-					send(MsgType.LoginResult, new LoginResult(false));
+					send(MsgType.LoginResult, new LoginResult(ErrorCode.WrongCredentials));
 				}
 			}
 		}
-		
+
 		void logout(LogoutRequest req){
 			System.out.println(name + " logging out.");
-			activeClient.remove(name);
+			onlineClients.remove(name);
 			stop=true;
 		}
+
+		void addFriend(AddFriendRequest req){
+			if(name == null){
+				send(MsgType.AddFriendResult, new AddFriendResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			if(name.equals(req.username)){
+				send(MsgType.AddFriendResult, new AddFriendResult(ErrorCode.CannotAddSelfAsFriend));
+				return;
+			}
+
+			if(accountDb.containsKey(req.username)){
+				AccountInfo info = accountDb.get(name);
+				if(!info.friends.contains(req.username)){
+					info.friends.add(req.username);
+					saveDatabase();
+				}
+				send(MsgType.AddFriendResult, new AddFriendResult());
+			}
+			else {
+				send(MsgType.AddFriendResult, new AddFriendResult(ErrorCode.UserDoesNotExist));
+			}
+		}
+
+		void sendPrivateMessage(SendPrivateMessageRequest req){
+			if(name == null){
+				send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			if(name.equals(req.to)){
+				send(MsgType.SendPrivateMessageResult, new AddFriendResult(ErrorCode.CannotSendMessageToSelf));
+				return;
+			}
+			if(!onlineClients.containsKey(req.to)){
+				send(MsgType.SendPrivateMessageResult, new AddFriendResult(ErrorCode.UserNotOnline));
+				return;
+			}
+			else {
+
+			}
+		}
+
+		void sendGroupMessage(SendGroupMessageRequest req){
+			if(name == null){
+				send(MsgType.SendGroupMessageResult, new SendGroupMessageResult(ErrorCode.NotAuthorized));
+				return;
+			}
+		}
+
+		//endregion
 
 		/*
 		
