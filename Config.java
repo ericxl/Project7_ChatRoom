@@ -6,4 +6,5 @@ package assignment7;
 public class Config {
     public static final int port = 4242;
     public static final String endpoint = "127.0.0.1";
+    public static final String databaseFileName = "accounts.db";
 }

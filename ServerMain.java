@@ -1,24 +1,45 @@
 package assignment7;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Observable;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 public class ServerMain extends Observable {
 	private Map<String,String> login = new HashMap<>();
+	private Map<String, AccountInfo> registrations;
 	Map<String,ClientHandler> activeClient = new HashMap<>();
 	Map<String,String> individualChat = new HashMap<>();
 
 	public static void main(String[] args) {
 		try {
-			new ServerMain().setUpNetworking();
+			ServerMain mainServer = new ServerMain();
+			mainServer.setUpDatabase();
+			mainServer.setUpNetworking();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void setUpDatabase()  {
+		try {
+			FileInputStream fis = new FileInputStream(Config.databaseFileName);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			registrations = (Map<String, AccountInfo>) ois.readObject();
+			ois.close();
+		}
+		catch(Exception ex){
+			registrations = new HashMap<>();
+		}
+	}
+
+	private void saveDatabase(){
+		try {
+			FileOutputStream fos = new FileOutputStream(Config.databaseFileName);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(registrations);
+			oos.close();
+		}
+		catch(Exception ex){
 		}
 	}
 
@@ -45,7 +66,7 @@ public class ServerMain extends Observable {
 		private String name;
 		private boolean stop = false;
 
-		public ClientHandler(Socket clientSocket) {
+		public ClientHandler (Socket clientSocket) {
 			sock = clientSocket;
 			try {
 				reader = new ObjectInputStream(sock.getInputStream());
@@ -55,11 +76,16 @@ public class ServerMain extends Observable {
 			}
 		}
 
+		@Override
 		public void run() {
 			while(!stop){
 				try{
 					byte type = reader.readByte();
 					switch(type){
+						case MsgType.RegisterRequest:
+							register((RegisterRequest) reader.readObject());
+							break;
+
 						case MsgType.LoginRequest:
 							login((LoginRequest)reader.readObject());
 							break;
@@ -68,14 +94,12 @@ public class ServerMain extends Observable {
 							break;
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					if(name != null){
+						logout(null);
+					}
 				}
 
 			}
-			//close();
-		}
-		
-		void close(){
 			if(reader!=null){
 				try {
 					reader.close();
@@ -111,18 +135,7 @@ public class ServerMain extends Observable {
 				writeMsg(new Message(Message.ERROR,"Recipient not found!"));
 			}
 		}
-		
-		void writeMsg(Message msg){
-			if(!sock.isConnected()||name==null){
-				System.out.println("Client not initialized!");
-				return;
-			}
-			try {
-				writer.writeObject(msg);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+
 */
 		void send(byte channel, ResultBase result){
 			try {
@@ -134,47 +147,47 @@ public class ServerMain extends Observable {
 
 			}
 		}
-		
-		void login(LoginRequest msg){
-			System.out.println(msg.password);
-			send(MsgType.LoginResult, new LoginResult(true));
-			/*
-			if(activeClient.containsKey(msg.username)){
-				//sendMsg(new Message(Message.ERROR,"This account is already logined!"));
-			}else{
-				if(msg.password.equals(login.get(msg.username))){
-					name = msg.username;
-					activeClient.put(msg.username, this);
-					sendMsg(new Message(0,"Login Successful!"));
-				}else{
-					sendMsg(new Message(Message.ERROR,"Username or password wrong!"));
+
+		void register(RegisterRequest req){
+			if(registrations.containsKey(req.username)){
+				send(MsgType.RegisterResult, new RegisterResult(false));
+			}
+			else{
+				AccountInfo info = new AccountInfo();
+				info.username = req.username;
+				info.displayName = req.displayName;
+				info.email = req.email;
+				info.password = req.password;
+				registrations.put(req.username, info);
+				saveDatabase();
+				send(MsgType.RegisterResult, new RegisterResult(true));
+			}
+		}
+
+		void login(LoginRequest req){
+			if(!registrations.containsKey(req.username)){
+				send(MsgType.LoginResult, new LoginResult(false));
+			}
+			else{
+				AccountInfo info = registrations.get(req.username);
+				if(req.password.equals(info.password)){
+					name = req.username;
+					activeClient.put(req.username, this);
+					send(MsgType.LoginResult, new LoginResult(true));
+				}
+				else {
+					send(MsgType.LoginResult, new LoginResult(false));
 				}
 			}
-			*/
 		}
 		
-		void logout(LogoutRequest msg){
+		void logout(LogoutRequest req){
 			System.out.println(name + " logging out.");
 			activeClient.remove(name);
 			stop=true;
 		}
 
 		/*
-		void addLogin(Message msg){
-			String[] cred = msg.getContent().split(" ");
-			if(cred.length>2){
-				writeMsg(new Message(Message.ERROR,"No space is allowed!"));
-				return;
-			}
-			if(cred.length<2){
-				writeMsg(new Message(Message.ERROR,"Username or password can not be empty!"));
-			}
-			if(login.containsKey(cred[0])){
-				writeMsg(new Message(Message.ERROR,"Username already exist!"));
-			}else{
-				login.put(cred[0], cred[1]);
-			}
-		}
 		
 		void groupChat(Message msg){
 			setChanged();
