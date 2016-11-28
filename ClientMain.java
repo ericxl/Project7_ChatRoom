@@ -40,12 +40,14 @@ public class ClientMain extends Application {
 
 		client = new Client(Config.port, Config.endpoint);
 		client.send(MsgType.RegisterRequest, new RegisterRequest("user", "pass", "eric", "eric@gmail.com"));
-		client.OnRegister(result -> OnRegister(result));
-		client.OnLogin(result -> OnLogin(result));
+		client.registerHandler(MsgType.RegisterResult, result-> OnRegister((RegisterResult)result));
+		client.registerHandler(MsgType.LoginResult, result-> OnLogin((LoginResult) result));
+		client.registerHandler(MsgType.AddFriendResult, result-> OnAddFriend((AddFriendResult) result));
+
 	}
 
 	private void OnLogin(LoginResult result){
-		if(result.success){
+		if(result.error == null){
 			System.out.println("login success");
 		} else {
 			System.out.println("login failed");
@@ -53,8 +55,16 @@ public class ClientMain extends Application {
 	}
 
 	private void OnRegister(RegisterResult result){
-		if(result.success){
+		if(result.error != null){
 			System.out.println("Register success");
+		} else {
+			System.out.println("Register failed");
+		}
+	}
+
+	private void OnAddFriend(AddFriendResult result){
+		if(result.error != null){
+			System.out.println("Add friend success");
 		} else {
 			System.out.println("Register failed");
 		}

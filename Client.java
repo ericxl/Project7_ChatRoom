@@ -10,14 +10,13 @@ public class Client {
     ObjectOutputStream toServer;
     ObjectInputStream fromServer;
 
-    private final List<OnRegisterObserver> onRegisterObservers = new ArrayList<>();
-    private final List<OnLoginObserver> onLoginObservers = new ArrayList<>();
-
-    public void OnRegister(OnRegisterObserver observer){
-        this.onRegisterObservers.add(observer);
+    interface OnResult {
+        void observe(ResultBase result);
     }
-    public void OnLogin(OnLoginObserver observer){
-        this.onLoginObservers.add(observer);
+    private Map<Byte, OnResult> observers = new HashMap<>();
+
+    public void registerHandler (byte channel, OnResult observer) {
+        observers.put(new Byte(channel), observer);
     }
 
     public Client(int port, String url){
@@ -50,21 +49,7 @@ public class Client {
             while(true){
                 try{
                     byte type = fromServer.readByte();
-
-                    if(type == MsgType.RegisterResult){
-                        RegisterResult result = (RegisterResult) fromServer.readObject();
-
-                        for (final OnRegisterObserver observer : onRegisterObservers) {
-                            observer.observeRegister(result);
-                        }
-                    }
-                    else if(type == MsgType.LoginResult){
-                        LoginResult result = (LoginResult) fromServer.readObject();
-
-                        for (final OnLoginObserver observer : onLoginObservers) {
-                            observer.observeLogin(result);
-                        }
-                    }
+                    observers.get(new Byte(type)).observe((ResultBase) fromServer.readObject());
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;

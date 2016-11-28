@@ -1,6 +1,7 @@
 package assignment7;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Created by Eric on 11/28/16.
@@ -10,4 +11,5 @@ public class AccountInfo implements Serializable{
     public String password;
     public String displayName;
     public String email;
+    public ArrayList<String> friends = new ArrayList<>();
 }
