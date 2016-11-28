@@ -126,6 +126,38 @@ class SendGroupMessageResult extends ResultBase{
 	}
 }
 
+class GetActiveGroupsRequest extends RequestBase{
+	public GetActiveGroupsRequest(){}
+}
+class GetActiveGroupsResult extends ResultBase{
+	public String[] activeGroups;
+
+	public GetActiveGroupsResult(){}
+	public GetActiveGroupsResult(ErrorCode code){
+		super(code);
+	}
+	public GetActiveGroupsResult(String[] _groups){
+		this.activeGroups = _groups;
+	}
+}
+
+class CreateOrJoinGroupRequest extends RequestBase{
+	public String groupName;
+	public CreateOrJoinGroupRequest(){}
+}
+class CreateOrJoinGroupResult extends ResultBase{
+	public String groupName;
+
+	public CreateOrJoinGroupResult(){}
+	public CreateOrJoinGroupResult(ErrorCode code){
+		super(code);
+	}
+	public CreateOrJoinGroupResult (String _groupName){
+		this.groupName = _groupName;
+	}
+}
+
+
 enum ErrorCode {
 	NotAuthorized,
 	WrongCredentials,
@@ -133,6 +165,5 @@ enum ErrorCode {
 	UserDoesNotExist,
 	CannotAddSelfAsFriend,
 	CannotSendMessageToSelf,
-	UserNotOnline,
-	GroupDoesNotExists
+	UserNotOnline
 }

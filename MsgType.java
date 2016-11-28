@@ -13,6 +13,8 @@ public class MsgType {
     public static final byte AddFriendRequest = 3;
     public static final byte SendPrivateMessageRequest = 4;
     public static final byte SendGroupMessageRequest = 5;
+    public static final byte GetActiveGroupsRequest = 6;
+    public static final byte CreateOrJoinGroupRequest = 7;
 
     // Server -> Client
     public static final byte RegisterResult = RegisterRequest + _offset;
@@ -21,4 +23,6 @@ public class MsgType {
     public static final byte AddFriendResult = AddFriendRequest + _offset;
     public static final byte SendPrivateMessageResult = SendPrivateMessageRequest + _offset;
     public static final byte SendGroupMessageResult = SendGroupMessageRequest + _offset;
+    public static final byte GetActiveGroupsResult = GetActiveGroupsRequest + _offset;
+    public static final byte CreateOrJoinGroupResult = CreateOrJoinGroupRequest + _offset;
 }

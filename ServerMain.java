@@ -98,6 +98,12 @@ public class ServerMain extends Observable {
 						case MsgType.SendGroupMessageRequest:
 							sendGroupMessage((SendGroupMessageRequest) reader.readObject());
 							break;
+						case MsgType.GetActiveGroupsRequest:
+							getActiveGroups((GetActiveGroupsRequest) reader.readObject());
+							break;
+						case MsgType.CreateOrJoinGroupRequest:
+							createOrJoinGroup((CreateOrJoinGroupRequest) reader.readObject());
+							break;
 					}
 				} catch (Exception e) {
 					if(name != null){
@@ -243,6 +249,22 @@ public class ServerMain extends Observable {
 				send(MsgType.SendGroupMessageResult, new SendGroupMessageResult(ErrorCode.NotAuthorized));
 				return;
 			}
+		}
+
+		void getActiveGroups (GetActiveGroupsRequest req){
+			if(name == null){
+				send(MsgType.GetActiveGroupsResult, new GetActiveGroupsResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			//missing implementation
+		}
+
+		void createOrJoinGroup (CreateOrJoinGroupRequest req){
+			if(name == null){
+				send(MsgType.CreateOrJoinGroupResult, new CreateOrJoinGroupResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			//missing implementation
 		}
 
 		//endregion
