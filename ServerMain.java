@@ -7,7 +7,6 @@ import java.util.*;
 public class ServerMain extends Observable {
 	private Map<String, AccountInfo> accountDb;
 	Map<String,ClientAPIHandler> onlineClients = new HashMap<>();
-	Map<String,String> individualChat = new HashMap<>();
 
 	public static void main(String[] args) {
 		try {

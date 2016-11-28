@@ -13,10 +13,10 @@ public class Client {
     interface OnResult {
         void observe(ResultBase result);
     }
-    private Map<Byte, OnResult> observers = new HashMap<>();
+    private Map<Byte, OnResult> handlers = new HashMap<>();
 
     public void registerHandler (byte channel, OnResult observer) {
-        observers.put(new Byte(channel), observer);
+        handlers.put(new Byte(channel), observer);
     }
 
     public Client(int port, String url){
@@ -49,7 +49,7 @@ public class Client {
             while(true){
                 try{
                     byte type = fromServer.readByte();
-                    observers.get(new Byte(type)).observe((ResultBase) fromServer.readObject());
+                    handlers.get(new Byte(type)).observe((ResultBase) fromServer.readObject());
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;

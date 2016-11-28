@@ -9,5 +9,5 @@ public class ChatMessage implements Serializable {
     public String from;
     public String toUser;
     public String toGroup;
-    public String message;
+    public String body;
 }
