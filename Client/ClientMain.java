@@ -23,7 +23,7 @@ public class ClientMain extends Application {
 	String currentReceiver = null;
 	boolean groupChat = false;
 
-	Client client;
+	NetworkClient client;
 
 	Label statusLabel;
 	TextField inputField;
@@ -74,7 +74,7 @@ public class ClientMain extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		client = new Client(ClientConfig.port, ClientConfig.endpoint);
+		client = new NetworkClient(ClientConfig.port, ClientConfig.endpoint);
 		client.registerHandler(MsgType.RegisterResult, result-> onRegister((RegisterResult)result));
 		client.registerHandler(MsgType.LoginResult, result-> onLogin((LoginResult) result));
 		client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));

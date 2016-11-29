@@ -1,10 +1,9 @@
 package assignment7.Server;
 
-import assignment7.DataModel.*;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import assignment7.DataModel.*;
 
 public class ServerMain extends Observable {
 	private Map<String, AccountInfo> accountDb;
