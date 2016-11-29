@@ -95,68 +95,74 @@ class AddFriendResult extends ResultBase {
 }
 
 class SendPrivateMessageRequest extends RequestBase {
+	public String from;
 	public String to;
 	public String message;
 	public SendPrivateMessageRequest(){}
-	public SendPrivateMessageRequest(String _to, String _message){
+	public SendPrivateMessageRequest(String from, String _to, String _message){
+		this.from = from;
 		this.to = _to;
 		this.message = _message;
 	}
 }
 class SendPrivateMessageResult extends ResultBase{
+	public String from;
+	public String to;
+	public String message;
 	public SendPrivateMessageResult(){}
+	public SendPrivateMessageResult(String from, String to, String message){
+		this.from = from;
+		this.message=message;
+		this.to = to;
+	}
 	public SendPrivateMessageResult(ErrorCode code){
 		super(code);
 	}
 }
 
+class AddToGroupRequest extends RequestBase{
+	String name;
+	public AddToGroupRequest(){}
+	public AddToGroupRequest(String name){
+		this.name = name;
+	}
+}
+
+class AddToGroupResult extends ResultBase{
+	String name;
+	public AddToGroupResult(ErrorCode code){
+		super(code);
+	}
+	public AddToGroupResult(String name, ErrorCode code){
+		this(code);
+		this.name = name;
+	}
+	public AddToGroupResult(String name){
+		this.name = name;
+	}
+}
+
 class SendGroupMessageRequest extends RequestBase {
-	public String to;
+	public String from;
 	public String message;
 	public SendGroupMessageRequest(){}
-	public SendGroupMessageRequest(String _to, String _message){
-		this.to = _to;
+	public SendGroupMessageRequest(String from, String _message){
+		this.from=from;
 		this.message = _message;
 	}
 }
 class SendGroupMessageResult extends ResultBase{
+	public String from;
+	public String message;
 	public SendGroupMessageResult(){}
 	public SendGroupMessageResult(ErrorCode code){
 		super(code);
 	}
-}
-
-class GetActiveGroupsRequest extends RequestBase{
-	public GetActiveGroupsRequest(){}
-}
-class GetActiveGroupsResult extends ResultBase{
-	public String[] activeGroups;
-
-	public GetActiveGroupsResult(){}
-	public GetActiveGroupsResult(ErrorCode code){
-		super(code);
-	}
-	public GetActiveGroupsResult(String[] _groups){
-		this.activeGroups = _groups;
+	public SendGroupMessageResult(String _from, String _message){
+		this.from=_from;
+		this.message = _message;
 	}
 }
-
-class CreateOrJoinGroupRequest extends RequestBase{
-	public String groupName;
-	public CreateOrJoinGroupRequest(){}
-}
-class CreateOrJoinGroupResult extends ResultBase{
-	public String groupName;
-
-	public CreateOrJoinGroupResult(){}
-	public CreateOrJoinGroupResult(ErrorCode code){
-		super(code);
-	}
-	public CreateOrJoinGroupResult (String _groupName){
-		this.groupName = _groupName;
-	}
-}
-
 
 enum ErrorCode {
 	NotAuthorized,
@@ -165,5 +171,7 @@ enum ErrorCode {
 	UserDoesNotExist,
 	CannotAddSelfAsFriend,
 	CannotSendMessageToSelf,
-	UserNotOnline
+	UserNotOnline,
+	GroupDoesNotExists,
+	NotAFriend,
 }
