@@ -41,6 +41,7 @@ public class ClientMain extends Application {
 		client.registerHandler(MsgType.RegisterResult, result-> OnRegister((RegisterResult)result));
 		client.registerHandler(MsgType.LoginResult, result-> OnLogin((LoginResult) result));
 		client.registerHandler(MsgType.AddFriendResult, result-> OnAddFriend((AddFriendResult) result));
+		client.registerHandler(MsgType.SendPrivateMessageResult, result-> onReceiveMessage((SendPrivateMessageResult) result));
 
 	}
 
@@ -65,6 +66,18 @@ public class ClientMain extends Application {
 			System.out.println("Add friend success");
 		} else {
 			System.out.println("Register failed");
+		}
+	}
+	
+	private void onReceiveMessage(SendPrivateMessageResult result){
+		if(result.error != null){
+			if(result.error== ErrorCode.NotAFriend){
+				System.out.println(result.to+" is not a friend!");
+			}else{
+				System.out.println("Chat Error!");
+			}
+		}else{
+			System.out.println(result.from +": " +result.message);
 		}
 	}
 
