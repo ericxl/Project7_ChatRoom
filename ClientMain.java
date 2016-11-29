@@ -210,6 +210,26 @@ public class ClientMain extends Application {
 			System.out.println("send private msg failed" + result.error.toString());
 		}
 	}
+	
+	private void onReceiveMessage(SendPrivateMessageResult result){
+		if(result.error != null){
+			if(result.error== ErrorCode.NotAFriend){
+				System.out.println(result.to+" is not a friend!");
+			}else{
+				System.out.println("Chat Error!");
+			}
+		}else{
+			System.out.println(result.from +": " +result.message);
+		}
+	}
+	
+	private void OnAddToGroup(AddToGroupResult result){
+		if(result.error != null){
+			System.out.println("Add "+result.name+" to group failed!");
+		}else{
+			System.out.println("Add "+result.name+" to group successful!");
+		}
+	}
 
 	private void OnSendGroupMessage (SendGroupMessageResult result){
 		if(result.error == null){

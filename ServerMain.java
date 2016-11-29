@@ -69,6 +69,7 @@ public class ServerMain extends Observable {
 			try {
 				reader = new ObjectInputStream(sock.getInputStream());
 				writer = new ClientObserver(sock.getOutputStream());
+				addObserver(writer);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -95,15 +96,18 @@ public class ServerMain extends Observable {
 						case MsgType.SendPrivateMessageRequest:
 							sendPrivateMessage((SendPrivateMessageRequest) reader.readObject());
 							break;
+						case MsgType.AddToGroupRequest:
+							addTogroup((AddToGroupRequest) reader.readObject());
+							break;
 						case MsgType.SendGroupMessageRequest:
 							sendGroupMessage((SendGroupMessageRequest) reader.readObject());
 							break;
-						case MsgType.GetActiveGroupsRequest:
-							getActiveGroups((GetActiveGroupsRequest) reader.readObject());
-							break;
-						case MsgType.CreateOrJoinGroupRequest:
-							createOrJoinGroup((CreateOrJoinGroupRequest) reader.readObject());
-							break;
+//						case MsgType.GetActiveGroupsRequest:
+//							getActiveGroups((GetActiveGroupsRequest) reader.readObject());
+//							break;
+//						case MsgType.CreateOrJoinGroupRequest:
+//							createOrJoinGroup((CreateOrJoinGroupRequest) reader.readObject());
+//							break;
 					}
 				} catch (Exception e) {
 					if(name != null){
@@ -252,7 +256,24 @@ public class ServerMain extends Observable {
 				return;
 			}
 			else {
-
+				AccountInfo ai = accountDb.get(name);
+				if(ai.friends.contains(req.to)){
+					ClientAPIHandler receiver = onlineClients.get(req.to);
+					receiver.send(MsgType.SendPrivateMessageResult,new SendPrivateMessageResult(req.from,req.to,req.message));
+				}else{
+					send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.NotAFriend));
+				}
+			}
+		}
+		
+		void addTogroup(AddToGroupRequest req){
+			if(!onlineClients.containsKey(req.name)){
+				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name,ErrorCode.UserNotOnline));
+			}else{
+				ClientAPIHandler handler = onlineClients.get(req.name);
+				handler.addTogroup(new AddToGroupRequest(name));
+				writer.addToGroup(req.name);
+				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name));
 			}
 		}
 
@@ -261,8 +282,10 @@ public class ServerMain extends Observable {
 				send(MsgType.SendGroupMessageResult, new SendGroupMessageResult(ErrorCode.NotAuthorized));
 				return;
 			}
+			setChanged();
+			notifyObservers(new SendGroupMessageResult(req.from,req.message));
 		}
-
+/*
 		void getActiveGroups (GetActiveGroupsRequest req){
 			if(name == null){
 				send(MsgType.GetActiveGroupsResult, new GetActiveGroupsResult(ErrorCode.NotAuthorized));
@@ -277,7 +300,7 @@ public class ServerMain extends Observable {
 				return;
 			}
 			//missing implementation
-		}
+		}*/
 
 		//endregion
 
