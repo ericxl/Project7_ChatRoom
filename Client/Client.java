@@ -1,4 +1,6 @@
-package assignment7;
+package assignment7.Client;
+import assignment7.DataModel.*;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -11,7 +13,7 @@ public class Client {
     ObjectInputStream fromServer;
 
     interface OnResult {
-        void observe(ResultBase result);
+        void observe(ServerMessageBase result);
     }
     private Map<Byte, OnResult> handlers = new HashMap<>();
 

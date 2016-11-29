@@ -1,12 +1,12 @@
-package assignment7;
+package assignment7.Client;
 
-import javafx.application.Application;
-import javafx.application.Platform;
+import assignment7.DataModel.*;
+import javafx.application.*;
 import javafx.geometry.*;
-import javafx.scene.Scene;
+import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
+import javafx.scene.layout.*;
+import javafx.stage.*;
 
 public class ClientMain extends Application {
 	enum CommandState {
@@ -74,7 +74,7 @@ public class ClientMain extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		client = new Client(Config.port, Config.endpoint);
+		client = new Client(ClientConfig.port, ClientConfig.endpoint);
 		client.registerHandler(MsgType.RegisterResult, result-> onRegister((RegisterResult)result));
 		client.registerHandler(MsgType.LoginResult, result-> onLogin((LoginResult) result));
 		client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
@@ -206,9 +206,7 @@ public class ClientMain extends Application {
 	}
 	
 	private void onReceiveChatMessage(ChatMessage result){
-		if(result.error == null){
 
-		}
 	}
 
 	private void onSendGroupMessage (SendGroupMessageResult result){
