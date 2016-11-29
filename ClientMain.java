@@ -75,13 +75,12 @@ public class ClientMain extends Application {
 		primaryStage.show();
 
 		client = new Client(Config.port, Config.endpoint);
-		client.registerHandler(MsgType.RegisterResult, result-> OnRegister((RegisterResult)result));
-		client.registerHandler(MsgType.LoginResult, result-> OnLogin((LoginResult) result));
-		client.registerHandler(MsgType.AddFriendResult, result-> OnAddFriend((AddFriendResult) result));
-		client.registerHandler(MsgType.SendPrivateMessageResult, result-> OnSendPrivateMessage((SendPrivateMessageResult) result));
-		client.registerHandler(MsgType.SendGroupMessageResult, result-> OnSendGroupMessage((SendGroupMessageResult) result));
-		client.registerHandler(MsgType.GetActiveGroupsResult, result-> OnGetActiveGroups((GetActiveGroupsResult) result));
-		client.registerHandler(MsgType.CreateOrJoinGroupResult, result-> OnCreateOrJoinGroup((CreateOrJoinGroupResult) result));
+		client.registerHandler(MsgType.RegisterResult, result-> onRegister((RegisterResult)result));
+		client.registerHandler(MsgType.LoginResult, result-> onLogin((LoginResult) result));
+		client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
+		client.registerHandler(MsgType.SendPrivateMessageResult, result-> onSendPrivateMessage((SendPrivateMessageResult) result));
+		client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
+		client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
 	}
 	private void switchToState(CommandState newState){
 		if(state != newState){
@@ -172,14 +171,9 @@ public class ClientMain extends Application {
 			groupChat = false;
 			currentReceiver = command;
 		}
-		else if(state == CommandState.JOIN){
-			client.send(MsgType.CreateOrJoinGroupRequest, new CreateOrJoinGroupRequest());
-			switchToState(CommandState.TOGROUP);
-		}
 	}
 
-
-	private void OnRegister(RegisterResult result){
+	private void onRegister(RegisterResult result){
 		if(result.error == null){
 			System.out.println("Successfully registered: " + result.username);
 		} else {
@@ -187,7 +181,7 @@ public class ClientMain extends Application {
 		}
 	}
 
-	private void OnLogin(LoginResult result){
+	private void onLogin(LoginResult result){
 		if(result.error == null){
 			System.out.println("login success");
 		} else {
@@ -195,7 +189,7 @@ public class ClientMain extends Application {
 		}
 	}
 
-	private void OnAddFriend(AddFriendResult result){
+	private void onAddFriend(AddFriendResult result){
 		if(result.error == null){
 			System.out.println("Add friend success: " + result.friendDisplayName);
 		} else {
@@ -203,7 +197,7 @@ public class ClientMain extends Application {
 		}
 	}
 
-	private void OnSendPrivateMessage (SendPrivateMessageResult result){
+	private void onSendPrivateMessage (SendPrivateMessageResult result){
 		if(result.error == null){
 			System.out.println("send private msg success");
 		} else {
@@ -211,50 +205,17 @@ public class ClientMain extends Application {
 		}
 	}
 	
-	private void onReceiveMessage(SendPrivateMessageResult result){
-		if(result.error != null){
-			if(result.error== ErrorCode.NotAFriend){
-				System.out.println(result.to+" is not a friend!");
-			}else{
-				System.out.println("Chat Error!");
-			}
-		}else{
-			System.out.println(result.from +": " +result.message);
-		}
-	}
-	
-	private void OnAddToGroup(AddToGroupResult result){
-		if(result.error != null){
-			System.out.println("Add "+result.name+" to group failed!");
-		}else{
-			System.out.println("Add "+result.name+" to group successful!");
+	private void onReceiveChatMessage(ChatMessage result){
+		if(result.error == null){
+
 		}
 	}
 
-	private void OnSendGroupMessage (SendGroupMessageResult result){
+	private void onSendGroupMessage (SendGroupMessageResult result){
 		if(result.error == null){
 			System.out.println("send group msg success");
 		} else {
 			System.out.println("send group msg failed" + result.error.toString());
-		}
-	}
-
-	private void OnGetActiveGroups (GetActiveGroupsResult result){
-		if(result.error == null){
-			System.out.println("get active groups success: ");
-			for (String group:result.activeGroups) {
-				System.out.println(group);
-			}
-		} else {
-			System.out.println("get active groups failed" + result.error.toString());
-		}
-	}
-
-	private void OnCreateOrJoinGroup (CreateOrJoinGroupResult result){
-		if(result.error == null){
-			System.out.println("create or join group success: " + result.groupName);
-		} else {
-			System.out.println("create or join group failed" + result.error.toString());
 		}
 	}
 

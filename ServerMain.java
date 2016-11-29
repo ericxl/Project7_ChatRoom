@@ -259,13 +259,35 @@ public class ServerMain extends Observable {
 				AccountInfo ai = accountDb.get(name);
 				if(ai.friends.contains(req.to)){
 					ClientAPIHandler receiver = onlineClients.get(req.to);
-					receiver.send(MsgType.SendPrivateMessageResult,new SendPrivateMessageResult(req.from,req.to,req.message));
+					ChatMessage chat = new ChatMessage();
+					chat.from = name;
+					chat.toUser = req.to;
+					chat.body = req.message;
+					receiver.send(MsgType.ChatMessage, chat);
+					send(MsgType.ChatMessage, chat);
+					send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult());
+
 				}else{
 					send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.NotAFriend));
 				}
 			}
 		}
-		
+
+		void sendGroupMessage(SendGroupMessageRequest req){
+			if(name == null){
+				send(MsgType.SendGroupMessageResult, new SendGroupMessageResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			setChanged();
+			ChatMessage chat = new ChatMessage();
+			chat.from = name;
+			chat.toGroup = req.to;
+			chat.body = req.message;
+			notifyObservers(chat);
+			send(MsgType.SendGroupMessageResult, new SendGroupMessageResult());
+
+		}
+
 		void addTogroup(AddToGroupRequest req){
 			if(!onlineClients.containsKey(req.name)){
 				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name,ErrorCode.UserNotOnline));
@@ -277,14 +299,6 @@ public class ServerMain extends Observable {
 			}
 		}
 
-		void sendGroupMessage(SendGroupMessageRequest req){
-			if(name == null){
-				send(MsgType.SendGroupMessageResult, new SendGroupMessageResult(ErrorCode.NotAuthorized));
-				return;
-			}
-			setChanged();
-			notifyObservers(new SendGroupMessageResult(req.from,req.message));
-		}
 /*
 		void getActiveGroups (GetActiveGroupsRequest req){
 			if(name == null){
@@ -305,11 +319,6 @@ public class ServerMain extends Observable {
 		//endregion
 
 		/*
-		
-		void groupChat(Message msg){
-			setChanged();
-			notifyObservers(msg);
-		}
 		
 		void addToGroup(Message msg){
 			if(msg==null){

@@ -95,26 +95,16 @@ class AddFriendResult extends ResultBase {
 }
 
 class SendPrivateMessageRequest extends RequestBase {
-	public String from;
 	public String to;
 	public String message;
 	public SendPrivateMessageRequest(){}
-	public SendPrivateMessageRequest(String from, String _to, String _message){
-		this.from = from;
+	public SendPrivateMessageRequest(String _to, String _message){
 		this.to = _to;
 		this.message = _message;
 	}
 }
 class SendPrivateMessageResult extends ResultBase{
-	public String from;
-	public String to;
-	public String message;
 	public SendPrivateMessageResult(){}
-	public SendPrivateMessageResult(String from, String to, String message){
-		this.from = from;
-		this.message=message;
-		this.to = to;
-	}
 	public SendPrivateMessageResult(ErrorCode code){
 		super(code);
 	}
@@ -127,7 +117,6 @@ class AddToGroupRequest extends RequestBase{
 		this.name = name;
 	}
 }
-
 class AddToGroupResult extends ResultBase{
 	String name;
 	public AddToGroupResult(ErrorCode code){
@@ -143,24 +132,18 @@ class AddToGroupResult extends ResultBase{
 }
 
 class SendGroupMessageRequest extends RequestBase {
-	public String from;
+	public String to;
 	public String message;
 	public SendGroupMessageRequest(){}
-	public SendGroupMessageRequest(String from, String _message){
-		this.from=from;
+	public SendGroupMessageRequest(String _to, String _message){
+		this.to=_to;
 		this.message = _message;
 	}
 }
 class SendGroupMessageResult extends ResultBase{
-	public String from;
-	public String message;
 	public SendGroupMessageResult(){}
 	public SendGroupMessageResult(ErrorCode code){
 		super(code);
-	}
-	public SendGroupMessageResult(String _from, String _message){
-		this.from=_from;
-		this.message = _message;
 	}
 }
 
@@ -173,6 +156,5 @@ enum ErrorCode {
 	CannotAddSelfAsFriend,
 	CannotSendMessageToSelf,
 	UserNotOnline,
-	GroupDoesNotExists,
-	NotAFriend,
+	GroupDoesNotExists
 }
