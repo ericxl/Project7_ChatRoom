@@ -1,4 +1,6 @@
-package assignment7;
+package assignment7.Server;
+
+import assignment7.DataModel.ChatMessage;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

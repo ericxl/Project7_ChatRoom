@@ -1,4 +1,4 @@
-package assignment7;
+package assignment7.DataModel;
 
 /**
  * Created by Eric on 11/27/16.
@@ -15,7 +15,8 @@ public class MsgType {
     public static final byte SendGroupMessageRequest = 5;
     public static final byte GetActiveGroupsRequest = 6;
     public static final byte CreateOrJoinGroupRequest = 7;
-    public static final byte AddToGroupRequest =8;
+    public static final byte AddToGroupRequest = 8;
+    public static final byte GetFriendsRequest = 9;
 
     // Server -> Client
     public static final byte RegisterResult = RegisterRequest + _offset;
@@ -26,8 +27,8 @@ public class MsgType {
     public static final byte SendGroupMessageResult = SendGroupMessageRequest + _offset;
     public static final byte GetActiveGroupsResult = GetActiveGroupsRequest + _offset;
     public static final byte CreateOrJoinGroupResult = CreateOrJoinGroupRequest + _offset;
-    public static final byte AddToGroupResult= AddToGroupRequest + _offset;
+    public static final byte AddToGroupResult = AddToGroupRequest + _offset;
+    public static final byte GetFriendsResult = GetFriendsRequest + _offset;
 
     public static final byte ChatMessage = 127;
-
 }
