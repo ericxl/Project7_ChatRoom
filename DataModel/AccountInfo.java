@@ -1,4 +1,4 @@
-package assignment7;
+package assignment7.DataModel;
 
 import java.io.*;
 import java.util.*;

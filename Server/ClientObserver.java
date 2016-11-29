@@ -1,12 +1,8 @@
-package assignment7;
+package assignment7.Server;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.io.*;
+import java.util.*;
+import assignment7.DataModel.*;
 
 public class ClientObserver extends ObjectOutputStream implements Observer {
 	private List<String> group = new ArrayList<>();

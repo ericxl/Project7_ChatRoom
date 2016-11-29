@@ -1,8 +1,9 @@
-package assignment7;
+package assignment7.Server;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import assignment7.DataModel.*;
 
 public class ServerMain extends Observable {
 	private Map<String, AccountInfo> accountDb;
@@ -20,7 +21,7 @@ public class ServerMain extends Observable {
 
 	private void setUpDatabase()  {
 		try {
-			FileInputStream fis = new FileInputStream(Config.databaseFileName);
+			FileInputStream fis = new FileInputStream(ServerConfig.databaseFileName);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			accountDb = (Map<String, AccountInfo>) ois.readObject();
 			ois.close();
@@ -32,7 +33,7 @@ public class ServerMain extends Observable {
 
 	private void saveDatabase(){
 		try {
-			FileOutputStream fos = new FileOutputStream(Config.databaseFileName);
+			FileOutputStream fos = new FileOutputStream(ServerConfig.databaseFileName);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(accountDb);
 			oos.close();
@@ -42,7 +43,7 @@ public class ServerMain extends Observable {
 	}
 
 	private void setUpNetworking() throws Exception {
-		ServerSocket serverSock = new ServerSocket(Config.port);
+		ServerSocket serverSock = new ServerSocket(ServerConfig.port);
 		InetAddress address = serverSock.getInetAddress();
 		System.out.println(address.getHostAddress());
 
@@ -102,6 +103,9 @@ public class ServerMain extends Observable {
 						case MsgType.SendGroupMessageRequest:
 							sendGroupMessage((SendGroupMessageRequest) reader.readObject());
 							break;
+						case MsgType.GetFriendsRequest:
+							getFriends((GetFriendsRequest) reader.readObject());
+							break;
 //						case MsgType.GetActiveGroupsRequest:
 //							getActiveGroups((GetActiveGroupsRequest) reader.readObject());
 //							break;
@@ -139,20 +143,6 @@ public class ServerMain extends Observable {
 			}
 		}
 
-		/*
-		void sendMsg(Message msg){
-			if(msg.getRecipient()==null){
-				writeMsg(new Message(Message.ERROR,"Please specify recipient!"));
-			}
-			if(activeClient.containsKey(msg.getRecipient())){
-				String appendName = name+": "+msg.getContent();
-				activeClient.get(msg.getRecipient()).writeMsg(new Message(msg.getType(),appendName));
-			}else{
-				writeMsg(new Message(Message.ERROR,"Recipient not found!"));
-			}
-		}
-
-*/
 		void send(byte channel, ResultBase result){
 			try {
 				writer.writeByte(channel);
@@ -263,8 +253,10 @@ public class ServerMain extends Observable {
 					chat.from = name;
 					chat.toUser = req.to;
 					chat.body = req.message;
-					receiver.send(MsgType.ChatMessage, chat);
-					send(MsgType.ChatMessage, chat);
+
+					//TODO
+					//receiver.send(MsgType.ChatMessage, chat);
+					//send(MsgType.ChatMessage, chat);
 					send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult());
 
 				}else{
@@ -290,7 +282,7 @@ public class ServerMain extends Observable {
 
 		void addTogroup(AddToGroupRequest req){
 			if(!onlineClients.containsKey(req.name)){
-				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name,ErrorCode.UserNotOnline));
+				send(MsgType.AddToGroupResult, new AddToGroupResult(ErrorCode.UserNotOnline));
 			}else{
 				ClientAPIHandler handler = onlineClients.get(req.name);
 				handler.addTogroup(new AddToGroupRequest(name));
@@ -299,6 +291,14 @@ public class ServerMain extends Observable {
 			}
 		}
 
+		void getFriends(GetFriendsRequest req){
+			if(name == null){
+				send(MsgType.GetFriendsResult, new GetFriendsResult(ErrorCode.NotAuthorized));
+				return;
+			}
+			AccountInfo thisAccount = accountDb.get(name);
+			send(MsgType.GetFriendsResult, new GetFriendsResult(thisAccount.friends.toArray(new String[0])));
+		}
 /*
 		void getActiveGroups (GetActiveGroupsRequest req){
 			if(name == null){
