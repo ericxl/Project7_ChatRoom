@@ -232,11 +232,23 @@ public class ServerMain extends Observable {
 				return;
 			}
 			if(name.equals(req.to)){
-				send(MsgType.SendPrivateMessageResult, new AddFriendResult(ErrorCode.CannotSendMessageToSelf));
+				send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.CannotSendMessageToSelf));
 				return;
 			}
+
+			if(!accountDb.containsKey(req.to)){
+				send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.UserDoesNotExist));
+				return;
+			} else {
+				AccountInfo toInfo = accountDb.get(req.to);
+				if(!toInfo.friends.contains(name)){
+					send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.NotAFriend));
+					return;
+				}
+			}
+
 			if(!onlineClients.containsKey(req.to)){
-				send(MsgType.SendPrivateMessageResult, new AddFriendResult(ErrorCode.UserNotOnline));
+				send(MsgType.SendPrivateMessageResult, new SendPrivateMessageResult(ErrorCode.UserNotOnline));
 				return;
 			}
 			else {

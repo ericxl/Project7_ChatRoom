@@ -163,6 +163,7 @@ enum ErrorCode {
 	WrongCredentials,
 	UserAlreadyExists,
 	UserDoesNotExist,
+	NotAFriend,
 	CannotAddSelfAsFriend,
 	CannotSendMessageToSelf,
 	UserNotOnline
