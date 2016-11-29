@@ -256,11 +256,12 @@ public class ServerMain extends Observable {
 		
 		void addTogroup(AddToGroupRequest req){
 			if(!onlineClients.containsKey(req.name)){
-				send(MsgType.AddToGroupResult, new SendGroupMessageResult(ErrorCode.UserNotOnline));
+				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name,ErrorCode.UserNotOnline));
 			}else{
 				ClientAPIHandler handler = onlineClients.get(req.name);
 				handler.addTogroup(new AddToGroupRequest(name));
 				writer.addToGroup(req.name);
+				send(MsgType.AddToGroupResult, new AddToGroupResult(req.name));
 			}
 		}
 
