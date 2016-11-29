@@ -28,4 +28,6 @@ public class MsgType {
     public static final byte CreateOrJoinGroupResult = CreateOrJoinGroupRequest + _offset;
     public static final byte AddToGroupResult= AddToGroupRequest + _offset;
 
+    public static final byte ChatMessage = 127;
+
 }

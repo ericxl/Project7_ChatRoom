@@ -22,7 +22,7 @@ public class ClientObserver extends ObjectOutputStream implements Observer {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		SendGroupMessageResult message = (SendGroupMessageResult) arg;
+		ChatMessage message = (ChatMessage) arg;
 		if(group.contains(message.from)){
 			try {
 				this.writeObject(arg);

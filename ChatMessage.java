@@ -5,7 +5,7 @@ import java.io.*;
 /**
  * Created by Eric on 11/28/16.
  */
-public class ChatMessage implements Serializable {
+public class ChatMessage extends ResultBase {
     public String from;
     public String toUser;
     public String toGroup;
