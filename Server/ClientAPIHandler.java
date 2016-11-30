@@ -134,7 +134,7 @@ public class ClientAPIHandler implements Runnable {
                 server.onlineClients.add(req.username);
                 server.addObserver(writer);
                 writer.setName(name);
-                send(MsgType.LoginResult, new LoginResult());
+                send(MsgType.LoginResult, new LoginResult(req.username));
             }
             else {
                 send(MsgType.LoginResult, new LoginResult(ErrorCode.WrongCredentials));
