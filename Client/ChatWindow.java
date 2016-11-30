@@ -212,7 +212,7 @@ public class ChatWindow {
 
     private void onAddFriend(AddFriendResult result){
         if(result.error == null){
-            System.out.println("Add friend success: " + result.friendDisplayName);
+            System.out.println("Add friend success: " + result.friendUsername);
         } else {
             System.out.println("add friend failed" + result.error.toString());
         }

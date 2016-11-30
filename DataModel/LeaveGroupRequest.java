@@ -5,9 +5,6 @@ package assignment7.DataModel;
  */
 public class LeaveGroupRequest extends RequestBase {
     public String groupName;
-    public LeaveGroupRequest(){
-
-    }
     public LeaveGroupRequest(String groupName){
         this.groupName = groupName;
     }

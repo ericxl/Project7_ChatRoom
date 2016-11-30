@@ -5,9 +5,6 @@ package assignment7.DataModel;
  */
 public class GetOnlineGroupMembersResult extends ResultBase{
     public String[] members;
-    public GetOnlineGroupMembersResult(){
-
-    }
     public GetOnlineGroupMembersResult(ErrorCode code){
         super(code);
     }

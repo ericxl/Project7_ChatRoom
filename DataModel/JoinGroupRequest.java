@@ -5,9 +5,6 @@ package assignment7.DataModel;
  */
 public class JoinGroupRequest extends RequestBase {
     public String groupName;
-    public JoinGroupRequest(){
-
-    }
     public JoinGroupRequest(String groupName){
         this.groupName = groupName;
     }
