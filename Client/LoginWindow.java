@@ -125,6 +125,7 @@ public class LoginWindow {
 		if(result.error == null){
 			Platform.runLater(() -> {
 				ChatWindow w = new ChatWindow(client);
+				w.setClientName(result.username);
 				w.start();
 				window.close();
 			});
