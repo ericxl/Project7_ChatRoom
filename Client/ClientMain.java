@@ -1,5 +1,9 @@
 package assignment7.Client;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 import assignment7.DataModel.*;
 import javafx.application.*;
 import javafx.geometry.*;
@@ -22,6 +26,7 @@ public class ClientMain extends Application {
 	CommandState state = null;
 	String currentReceiver = null;
 	boolean groupChat = false;
+	List<String> friends = new ArrayList<>();
 
 	NetworkClient client;
 
@@ -62,14 +67,27 @@ public class ClientMain extends Application {
 			}
 		});
 		paneForTextField.setCenter(inputField);
-
+		
+		ComboBox<String> friendList = new ComboBox<>();
+		friendList.setMinWidth(100);
+		friendList.setOnTouchPressed(e->{
+			client.send(MsgType.GetFriendsRequest, null);
+		});
+		friendList.setOnShowing(e->{
+			if(friends!=null){
+				for(String friend:friends){
+					friendList.getItems().add(friend);
+				}
+			}
+		});
 		BorderPane mainPane = new BorderPane();
 
 		TextArea ta = new TextArea();
 		mainPane.setCenter(new ScrollPane(ta));
 		mainPane.setBottom(paneForTextField);
-
-		Scene scene = new Scene(mainPane, 450, 200);
+		mainPane.setRight(friendList);
+		
+		Scene scene = new Scene(mainPane, 650, 400);
 		primaryStage.setTitle("Client");
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -82,6 +100,7 @@ public class ClientMain extends Application {
 		client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
 		client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
 		client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
+		getLogin();
 	}
 	private void switchToState(CommandState newState){
 		if(state != newState){
@@ -177,6 +196,16 @@ public class ClientMain extends Application {
 		else if(state == CommandState.JOIN){
 			client.send(MsgType.JoinGroupRequest, new JoinGroupRequest(command));
 			switchToState(CommandState.TOGROUP);
+		}
+	}
+	
+	private void getLogin(){
+		LoginWindow lw = new LoginWindow();
+		LoginInfo login = lw.display();
+		if(login.register){
+			client.send(MsgType.RegisterRequest, new RegisterRequest(login.userName, login.passWord));
+		}else{
+			client.send(MsgType.LoginRequest, new LoginRequest(login.userName, login.passWord));
 		}
 	}
 
