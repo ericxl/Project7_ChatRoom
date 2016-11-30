@@ -62,7 +62,7 @@ public class ChatWindow {
         statusLabel.setAlignment(Pos.CENTER);
         paneForTextField.setLeft(statusLabel);
         statusBar=new Label();
-
+       
         Button enter = new Button("Send");
         enter.setOnAction(e->{
             if(!groupChat){

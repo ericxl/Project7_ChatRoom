@@ -5,5 +5,5 @@ package assignment7.Client;
  */
 public class ClientConfig {
     public static final int port = 4242;
-    public static final String address= "localhost";
+    public static final String endpoint = "127.0.0.1";
 }
