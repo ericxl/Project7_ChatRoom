@@ -25,13 +25,15 @@ public class ClientMain extends Application {
 	}
 	CommandState state = null;
 	String currentReceiver = null;
+	String clientName = null;
 	boolean groupChat = false;
-	List<String> friends = new ArrayList<>();
+	String[] friends = null;
 
 	NetworkClient client;
 
 	Label statusLabel;
 	TextField inputField;
+	TextArea ta;
 	@Override
 	public void start(Stage primaryStage) {
 		BorderPane paneForTextField = new BorderPane();
@@ -43,6 +45,17 @@ public class ClientMain extends Application {
 		statusLabel.setMinWidth(100);
 		statusLabel.setAlignment(Pos.CENTER);
 		paneForTextField.setLeft(statusLabel);
+		
+		Button enter = new Button("Send");
+		enter.setOnAction(e->{
+			sendMessage(inputField.getText());
+			String msg = clientName+": "+inputField.getText();
+			ta.appendText(msg);
+		});
+		
+		enter.setAlignment(Pos.BOTTOM_RIGHT);
+		paneForTextField.setLeft(statusLabel);
+		paneForTextField.setRight(enter);
 
 		inputField = new TextField();
 		inputField.setAlignment(Pos.BOTTOM_LEFT);
@@ -70,22 +83,36 @@ public class ClientMain extends Application {
 		
 		ComboBox<String> friendList = new ComboBox<>();
 		friendList.setMinWidth(100);
-		friendList.setOnTouchPressed(e->{
-			client.send(MsgType.GetFriendsRequest, null);
-		});
 		friendList.setOnShowing(e->{
+			client.send(MsgType.GetFriendsRequest, null);
 			if(friends!=null){
+				friendList.getItems().clear();
 				for(String friend:friends){
 					friendList.getItems().add(friend);
 				}
 			}
 		});
+		friendList.setOnAction(e->{
+			currentReceiver=friendList.getValue();
+		});
+		
+		TextField friendName = new TextField();
+		Button addFriend = new Button("Add Friend");
+		addFriend.setOnAction(e->{
+			addFriend(friendName.getText());
+		});
+		
+		TextField groupName = new TextField();
+		Button joinGroup = new Button("Join Group");
+		
+		VBox vb = new VBox();
+		vb.getChildren().addAll(friendList,friendName,addFriend,groupName,joinGroup);
 		BorderPane mainPane = new BorderPane();
 
-		TextArea ta = new TextArea();
+		ta = new TextArea();
 		mainPane.setCenter(new ScrollPane(ta));
 		mainPane.setBottom(paneForTextField);
-		mainPane.setRight(friendList);
+		mainPane.setRight(vb);
 		
 		Scene scene = new Scene(mainPane, 650, 400);
 		primaryStage.setTitle("Client");
@@ -100,6 +127,7 @@ public class ClientMain extends Application {
 		client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
 		client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
 		client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
+		client.registerHandler(MsgType.GetFriendsResult, result -> onGetFriends((GetFriendsResult) result));
 		getLogin();
 	}
 	private void switchToState(CommandState newState){
@@ -206,7 +234,16 @@ public class ClientMain extends Application {
 			client.send(MsgType.RegisterRequest, new RegisterRequest(login.userName, login.passWord));
 		}else{
 			client.send(MsgType.LoginRequest, new LoginRequest(login.userName, login.passWord));
+			clientName=login.userName;
 		}
+	}
+	
+	private void sendMessage(String message){
+		client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, message));
+	}
+	
+	private void addFriend(String friend){
+		client.send(MsgType.AddFriendRequest, new AddFriendRequest(friend));
 	}
 
 	private void onRegister(RegisterResult result){
@@ -215,13 +252,25 @@ public class ClientMain extends Application {
 		} else {
 			System.out.println("Register failed" + result.error.toString());
 		}
+		Platform.runLater(new Runnable(){
+			@Override
+			public void run() {
+				getLogin();
+			}
+		});
 	}
 
 	private void onLogin(LoginResult result){
 		if(result.error == null){
 			System.out.println("login success");
 		} else {
-			System.out.println("login failed" + result.error.toString());
+			System.out.println("login failed " + result.error.toString());
+			Platform.runLater(new Runnable(){
+				@Override
+				public void run() {
+					getLogin();
+				}
+			});
 		}
 	}
 
@@ -231,6 +280,10 @@ public class ClientMain extends Application {
 		} else {
 			System.out.println("add friend failed" + result.error.toString());
 		}
+	}
+	
+	private void onGetFriends(GetFriendsResult result){
+		friends=result.friends;
 	}
 
 	private void onSendPrivateMessage (SendPrivateMessageResult result){
