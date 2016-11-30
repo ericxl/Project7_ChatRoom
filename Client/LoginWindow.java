@@ -23,9 +23,14 @@ public class LoginWindow {
 	private Label changePwdStatus;
 	private Button signInButton;
 	private Button registerButton;
+
+	private Scene loginScene;
+	private Scene changePassScene;
 	public LoginWindow(NetworkClient client){
 		this.client = client;
 
+		loginScene = loginScene();
+		changePassScene = changePwd();
 		start();
 	}
 
@@ -36,7 +41,7 @@ public class LoginWindow {
 		window.setTitle("Login");
 		window.setMinWidth(400);
 
-		window.setScene(loginScene());
+		window.setScene(loginScene);
 		window.setOnCloseRequest((t)->{
 			Platform.exit();
 			System.exit(0);
@@ -101,7 +106,7 @@ public class LoginWindow {
 		});
 		Button changePwd = new Button("Change pwd");
 		changePwd.setOnAction(e->{
-			window.setScene(changePwd());
+			window.setScene(changePassScene);
 		});
 		VBox hbBtn = new VBox(10);
 		hbBtn.setAlignment(Pos.BOTTOM_CENTER);
@@ -135,7 +140,7 @@ public class LoginWindow {
 		newPwBox = new PasswordField();
 		Button back = new Button("Back");
 		back.setOnAction(e->{
-			window.setScene(loginScene());
+			window.setScene(loginScene);
 		});
 		
 		Button enter = new Button("enter");
