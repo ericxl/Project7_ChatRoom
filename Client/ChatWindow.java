@@ -6,6 +6,7 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.*;
 /**
  * Created by Eric on 11/30/16.
@@ -61,7 +62,7 @@ public class ChatWindow {
         statusLabel.setAlignment(Pos.CENTER);
         paneForTextField.setLeft(statusLabel);
         statusBar=new Label();
-
+       
         Button enter = new Button("Send");
         enter.setOnAction(e->{
             if(!groupChat){
@@ -219,13 +220,18 @@ public class ChatWindow {
     private void onAddFriend(AddFriendResult result){
         if(result.error == null){
         	String text = "Add friend success: " + result.friendUsername;
-        	
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.GREEN);
+        	});
             System.out.println(text);
 
         } else {
         	String text = "Add friend failed" + result.error.toString();
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.RED);
+        	});
             System.out.println(text);
         }
     }
@@ -237,11 +243,17 @@ public class ChatWindow {
     private void onSendPrivateMessage (SendPrivateMessageResult result){
         if(result.error == null){
         	String text = "Send private msg success";
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.GREEN);
+        	});
             System.out.println(text);
         } else {
         	String text = "Send private msg failed" + result.error.toString();
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.RED);
+        	});
             System.out.println(text);
         }
     }
@@ -255,11 +267,17 @@ public class ChatWindow {
     private void onSendGroupMessage (SendGroupMessageResult result){
         if(result.error == null){
         	String text = "Send group msg success";
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.GREEN);
+        	});
             System.out.println(text);
         } else {
         	String text = "Send group msg failed" + result.error.toString();
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.RED);
+        	});
             System.out.println(text);
         }
     }
@@ -267,11 +285,17 @@ public class ChatWindow {
     private void onJoinGroup (JoinGroupResult result){
         if(result.error == null){
         	String text = "join group: " + result.groupName + " success!";
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.GREEN);
+        	});
             System.out.println(text);
         } else {
         	String text = "join group failed" + result.error.toString();
-        	statusBar.setText(text);
+        	Platform.runLater(()->{
+            	statusBar.setText(text);
+            	statusBar.setTextFill(Color.RED);
+        	});
             System.out.println(text);
         }
     }
