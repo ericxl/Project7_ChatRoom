@@ -17,6 +17,7 @@ public class MsgType {
     public static final byte GetFriendsRequest = 7;
     public static final byte JoinGroupRequest = 8;
     public static final byte LeaveGroupRequest = 9;
+    public static final byte GetOnlineGroupMembersRequest = 10;
 
     // Server -> Client
     public static final byte RegisterResult = RegisterRequest + _offset;
@@ -29,6 +30,7 @@ public class MsgType {
     public static final byte GetFriendsResult = GetFriendsRequest + _offset;
     public static final byte JoinGroupResult = JoinGroupRequest + _offset;
     public static final byte LeaveGroupResult = LeaveGroupRequest + _offset;
+    public static final byte GetOnlineGroupMembersResult = GetOnlineGroupMembersRequest + _offset;
 
     public static final byte JoinedGroupMessage = 126;
     public static final byte ChatMessage = 127;

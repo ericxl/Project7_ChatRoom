@@ -92,6 +92,15 @@ public class NetworkServer extends Observable{
             activeGroups.remove(emptyGroup);
         }
     }
+    public String[] getCurrentMembers(String groupName){
+        if(activeGroups.containsKey(groupName)){
+            Set<String> members = activeGroups.get(groupName);
+            String[] returnValue = members.toArray(new String[members.size()]);
+            return returnValue;
+        } else {
+            return null;
+        }
+    }
 
     public void notifyMessage(ObservableMessage message){
         this.setChanged();
