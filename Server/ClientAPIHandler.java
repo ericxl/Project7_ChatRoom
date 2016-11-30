@@ -60,9 +60,9 @@ public class ClientAPIHandler implements Runnable {
                     case MsgType.GetFriendsRequest:
                         getFriends((GetFriendsRequest) reader.readObject());
                         break;
-//						case MsgType.GetActiveGroupsRequest:
-//							getActiveGroups((GetActiveGroupsRequest) reader.readObject());
-//							break;
+                    case MsgType.GetOnlineGroupMembersRequest:
+                        getOnlineGroupMembers((GetOnlineGroupMembersRequest) reader.readObject());
+                        break;
                 }
             } catch (Exception e) {
                 if(name != null){
@@ -242,7 +242,8 @@ public class ClientAPIHandler implements Runnable {
         }
         server.addToGroup(name, req.groupName);
         writer.joinGroup(req.groupName);
-        send(MsgType.JoinGroupResult, new JoinGroupResult(req.groupName));
+        String[] members = server.getCurrentMembers(req.groupName);
+        send(MsgType.JoinGroupResult, new JoinGroupResult(req.groupName, members));
     }
 
     private void leaveGroup(LeaveGroupRequest req){
@@ -271,42 +272,23 @@ public class ClientAPIHandler implements Runnable {
         AccountInfo thisAccount = server.accountDb.get(name);
         send(MsgType.GetFriendsResult, new GetFriendsResult(thisAccount.friends.toArray(new String[0])));
     }
-/*
-		void getActiveGroups (GetActiveGroupsRequest req){
-			if(name == null){
-				send(MsgType.GetActiveGroupsResult, new GetActiveGroupsResult(ErrorCode.NotAuthorized));
-				return;
-			}
-			//missing implementation
-		}
 
-		void createOrJoinGroup (CreateOrJoinGroupRequest req){
-			if(name == null){
-				send(MsgType.CreateOrJoinGroupResult, new CreateOrJoinGroupResult(ErrorCode.NotAuthorized));
-				return;
-			}
-			//missing implementation
-		}*/
+    private void getOnlineGroupMembers(GetOnlineGroupMembersRequest req){
+        if(name == null){
+            send(MsgType.GetOnlineGroupMembersResult, new GetFriendsResult(ErrorCode.NotAuthorized));
+            return;
+        }
+        if(req.groupName.isEmpty()){
+            send(MsgType.GetOnlineGroupMembersResult, new GetOnlineGroupMembersResult(ErrorCode.InvalidFormat));
+            return;
+        }
+        if(writer.hasJoinedGroup(req.groupName)){
+            String[] members = server.getCurrentMembers(req.groupName);
+            send(MsgType.GetOnlineGroupMembersResult, new GetOnlineGroupMembersResult(members));
+        }else {
+            send(MsgType.GetOnlineGroupMembersResult, new GetOnlineGroupMembersResult(ErrorCode.GroupNotJoined));
+        }
+    }
 
     //endregion
-
-		/*
-
-		void addToGroup(Message msg){
-			if(msg==null){
-				writeMsg(new Message(Message.ERROR,"No account selected!"));
-				return;
-			}
-			addObserver(writer);
-			String[] names = msg.getContent().split(" ");
-			for(String name: names){
-				if(!activeClient.containsKey(name)){
-					writeMsg(new Message(Message.ERROR,"Account "+name+" is not online!"));
-				}else{
-					ClientHandler ch = activeClient.get(name);
-					addObserver(activeClient.get(name).getClientObserver());
-				}
-			}
-		}
-		*/
 }
