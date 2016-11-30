@@ -51,7 +51,13 @@ public class NetworkClient {
             while(true){
                 try{
                     byte type = fromServer.readByte();
-                    handlers.get(new Byte(type)).observe((ResultBase) fromServer.readObject());
+                    Byte channel = new Byte(type);
+                    if(handlers.containsKey(channel)){
+                        handlers.get(new Byte(type)).observe((ServerMessageBase) fromServer.readObject());
+                    }
+                    else {
+                        fromServer.readObject();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;

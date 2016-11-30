@@ -80,6 +80,7 @@ public class ClientMain extends Application {
 		client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
 		client.registerHandler(MsgType.SendPrivateMessageResult, result-> onSendPrivateMessage((SendPrivateMessageResult) result));
 		client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
+		client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
 		client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
 	}
 	private void switchToState(CommandState newState){
@@ -127,7 +128,7 @@ public class ClientMain extends Application {
 		if(state == CommandState.REG){
 			try {
 				String[] s = command.split(" ");
-				client.send(MsgType.RegisterRequest, new RegisterRequest(s[0], s[1], s[2], s[3]));
+				client.send(MsgType.RegisterRequest, new RegisterRequest(s[0], s[1]));
 				switchToState(CommandState.LOGIN);
 			}catch(Throwable e){
 
@@ -166,10 +167,16 @@ public class ClientMain extends Application {
 		else if(state == CommandState.TOGROUP){
 			groupChat = true;
 			currentReceiver = command;
+			switchToState(CommandState.CHAT);
 		}
 		else if(state == CommandState.TO){
 			groupChat = false;
 			currentReceiver = command;
+			switchToState(CommandState.CHAT);
+		}
+		else if(state == CommandState.JOIN){
+			client.send(MsgType.JoinGroupRequest, new JoinGroupRequest(command));
+			switchToState(CommandState.TOGROUP);
 		}
 	}
 
@@ -206,7 +213,7 @@ public class ClientMain extends Application {
 	}
 	
 	private void onReceiveChatMessage(ChatMessage result){
-
+		System.out.println("Received message from: " + result.from + " toUser: " + result.toUser + " toGroup: " + result.toGroup+ " msg: " + result.body);
 	}
 
 	private void onSendGroupMessage (SendGroupMessageResult result){
@@ -214,6 +221,14 @@ public class ClientMain extends Application {
 			System.out.println("send group msg success");
 		} else {
 			System.out.println("send group msg failed" + result.error.toString());
+		}
+	}
+
+	private void onJoinGroup (JoinGroupResult result){
+		if(result.error == null){
+			System.out.println("join group: " + result.groupName + " success!");
+		} else {
+			System.out.println("join group failed" + result.error.toString());
 		}
 	}
 
