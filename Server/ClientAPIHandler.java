@@ -294,17 +294,17 @@ public class ClientAPIHandler implements Runnable {
 
     private void changePassword(ChangePasswordRequest req){
         if(!server.accountDb.containsKey(req.username)){
-            send(MsgType.ChangePasswordResult, new LoginResult(ErrorCode.UserDoesNotExist));
+            send(MsgType.ChangePasswordResult, new ChangePasswordResult(ErrorCode.UserDoesNotExist));
         }
         else{
             AccountInfo info = server.accountDb.get(req.username);
             if(req.oldPassword.equals(info.password)){
                 info.password = req.newPassword;
                 server.saveDatabase();
-                send(MsgType.ChangePasswordResult, new LoginResult(req.username));
+                send(MsgType.ChangePasswordResult, new ChangePasswordResult(req.username));
             }
             else {
-                send(MsgType.ChangePasswordResult, new LoginResult(ErrorCode.WrongCredentials));
+                send(MsgType.ChangePasswordResult, new ChangePasswordResult(ErrorCode.WrongCredentials));
             }
         }
     }
