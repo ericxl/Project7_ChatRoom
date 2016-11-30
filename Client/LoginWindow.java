@@ -1,115 +1,141 @@
 package assignment7.Client;
-import javafx.stage.*;
+
+import assignment7.DataModel.*;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
- 
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.*;
+import javafx.application.*;
+import javafx.geometry.*;
+import javafx.scene.*;
+import javafx.scene.layout.*;
+
 public class LoginWindow {
-	private String address,name,pwd;
-	private boolean register;
+	private NetworkClient client;
+
 	private Stage window;
 
-	public LoginInfo display(){
-		
+	private TextField userTextField;
+	private PasswordField pwBox;
+	private Label status;
+	private Button signInButton;
+	private Button registerButton;
+	public LoginWindow(NetworkClient client){
+		this.client = client;
+
+		start();
+	}
+
+	private void start(){
 		window = new Stage();
 		
 		window.initModality(Modality.APPLICATION_MODAL);
 		window.setTitle("Login");
 		window.setMinWidth(400);
-		GridPane grid = new GridPane();
-		grid.setAlignment(Pos.CENTER);
-		grid.setHgap(10);
-		grid.setVgap(10);
-		grid.setPadding(new Insets(25, 25, 25, 25));
-		Text scenetitle = new Text("Sign In");
-		grid.add(scenetitle, 0, 0, 2, 1);
-		
-		Label serverAddress = new Label("Server Address:");
-		grid.add(serverAddress, 0, 1);
-		TextField serverTextField = new TextField();
-		grid.add(serverTextField, 1, 1);
-		
-		Label userName = new Label("User Name:");
-		grid.add(userName, 0, 2);
 
-		TextField userTextField = new TextField();
-		grid.add(userTextField, 1, 2);
-
-		Label pw = new Label("Password:");
-		grid.add(pw, 0, 3);
-
-		PasswordField pwBox = new PasswordField();
-		grid.add(pwBox, 1, 3);
-		
-		Button btn1 = new Button("Sign in");
-		btn1.setOnAction(e->{
-			address=serverTextField.getText();
-			name=userTextField.getText();
-			pwd=pwBox.getText();
-			register=false;
-			window.close();
+		window.setScene(loginScene());
+		window.setOnCloseRequest((t)->{
+			Platform.exit();
+			System.exit(0);
 		});
-		
-		Button btn2 = new Button("Register");
-		btn2.setOnAction(e->{
-			window.setScene(registerScene());
-		});
-		VBox hbBtn = new VBox(10);
-		hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
-		hbBtn.getChildren().addAll(btn1,btn2);
-		grid.add(hbBtn, 1, 5);
-		
-		Scene scene = new Scene(grid, 400, 375);
+		if(client != null) {
+			client.registerHandler(MsgType.RegisterResult, result -> onRegister((RegisterResult) result));
+			client.registerHandler(MsgType.LoginResult, result -> onLogin((LoginResult) result));
+		}
+		else{
+			signInButton.setDisable(true);
+			registerButton.setDisable(true);
+			status.setText("Can't establish network connection to server!");
+			status.setTextFill(Color.RED);
+		}
 
-		window.setScene(scene);
-		window.showAndWait();
-		return new LoginInfo(address,name,pwd,register);
+		window.show();
 	}
-	
-	private Scene registerScene(){
+
+	private Scene loginScene(){
 		GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(10);
 		grid.setVgap(10);
 		grid.setPadding(new Insets(25, 25, 25, 25));
-		
-		Text scenetitle = new Text("Register");
-		grid.add(scenetitle, 0, 0, 2, 1);
-		
-		Label serverAddress = new Label("Server Address:");
-		grid.add(serverAddress, 0, 1);
-		TextField serverTextField = new TextField();
-		grid.add(serverTextField, 1, 1);
-		
+
+		// username and password grid
+		GridPane fieldGrid = new GridPane();
+		fieldGrid.setAlignment(Pos.CENTER);
+		fieldGrid.setHgap(10);
+		fieldGrid.setVgap(10);
+		fieldGrid.setPadding(new Insets(25, 25, 25, 25));
+
 		Label userName = new Label("User Name:");
-		grid.add(userName, 0, 2);
-
-		TextField userTextField = new TextField();
-		grid.add(userTextField, 1, 2);
-
+		userTextField = new TextField();
 		Label pw = new Label("Password:");
-		grid.add(pw, 0, 3);
+		pwBox = new PasswordField();
 
-		PasswordField pwBox = new PasswordField();
-		grid.add(pwBox, 1, 3);
-		
-		Button btn = new Button("Register");
-		btn.setOnAction(e->{
-			address=serverTextField.getText();
-			name=userTextField.getText();
-			pwd=pwBox.getText();
-			register=true;
-			window.close();
+		fieldGrid.add(userName, 0, 0);
+		fieldGrid.add(userTextField, 1, 0);
+		fieldGrid.add(pw, 0, 1);
+		fieldGrid.add(pwBox, 1, 1);
+
+		grid.add(fieldGrid, 0, 0);
+
+		status = new Label();
+		status.setTextAlignment(TextAlignment.CENTER);
+		grid.add(status, 0, 1);
+
+		signInButton = new Button("Sign in");
+		signInButton.setOnAction(e->{
+			String name=userTextField.getText();
+			String pwd=pwBox.getText();
+			client.send(MsgType.LoginRequest, new LoginRequest(name, pwd));
+		});
+
+		registerButton = new Button("Register");
+		registerButton.setOnAction(e-> {
+			String name=userTextField.getText();
+			String pwd=pwBox.getText();
+			client.send(MsgType.RegisterRequest, new RegisterRequest(name, pwd));
 		});
 		VBox hbBtn = new VBox(10);
-		hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
-		hbBtn.getChildren().addAll(btn);
-		grid.add(hbBtn, 1, 5);
-		Scene scene = new Scene(grid,400,375);
+		hbBtn.setAlignment(Pos.BOTTOM_CENTER);
+		hbBtn.getChildren().addAll(signInButton,registerButton);
+		grid.add(hbBtn, 0, 2);
+
+		Scene scene = new Scene(grid, 400, 375);
 		return scene;
+	}
+
+	private void onRegister(RegisterResult result){
+		if(result.error == null){
+			Platform.runLater(() -> {
+				status.setText("Registration Successful!");
+				status.setTextFill(Color.GREEN);
+			});
+		} else {
+			if(result.error == ErrorCode.UserAlreadyExists){
+				Platform.runLater(() -> {
+					status.setText("User Already Exists!");
+					status.setTextFill(Color.RED);
+				});
+			}
+		}
+	}
+
+	private void onLogin(LoginResult result){
+		if(result.error == null){
+			Platform.runLater(() -> {
+				ChatWindow w = new ChatWindow(client);
+				w.start();
+				window.close();
+			});
+		} else {
+			System.out.println("wrong");
+			if(result.error == ErrorCode.WrongCredentials){
+				Platform.runLater(() -> {
+					status.setText("Wrong Credentials!");
+					status.setTextFill(Color.RED);
+				});
+			}
+		}
 	}
 }

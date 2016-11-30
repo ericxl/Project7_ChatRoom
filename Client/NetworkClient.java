@@ -1,9 +1,10 @@
 package assignment7.Client;
 
+import assignment7.DataModel.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import assignment7.DataModel.*;
+
 /**
  * Created by Eric on 11/27/16.
  */
@@ -15,22 +16,25 @@ public class NetworkClient {
     interface OnResult {
         void observe(ServerMessageBase result);
     }
-    private Map<Byte, OnResult> handlers = new HashMap<>();
+    private Map<Byte, ArrayList<OnResult>> handlers = new HashMap<>();
 
-    public void registerHandler (byte channel, OnResult observer) {
-        handlers.put(new Byte(channel), observer);
+    public NetworkClient(int port, String url) throws IOException{
+        socket = new Socket(url, port);
+        toServer = new ObjectOutputStream(socket.getOutputStream());
+        fromServer = new ObjectInputStream(socket.getInputStream());
+        Thread t = new Thread(new ServerHandler());
+        t.start();
     }
 
-    public NetworkClient(int port, String url){
-        try {
-            socket = new Socket(url, port);
-            toServer = new ObjectOutputStream(socket.getOutputStream());
-            fromServer = new ObjectInputStream(socket.getInputStream());
-            Thread t = new Thread(new ServerHandler());
-            t.start();
-            System.out.println("io ready");
-        }
-        catch (IOException ex) {
+    public void registerHandler (byte channel, OnResult observer) {
+        Byte c = new Byte(channel);
+        if(handlers.containsKey(c)){
+            ArrayList<OnResult> r = handlers.get(c);
+            r.add(observer);
+        } else {
+            ArrayList<OnResult> r = new ArrayList<>();
+            r.add(observer);
+            handlers.put(c, r);
         }
     }
 
@@ -46,23 +50,22 @@ public class NetworkClient {
     }
 
     class ServerHandler implements Runnable {
-
         public void run() {
             while(true){
                 try{
                     byte type = fromServer.readByte();
+                    ServerMessageBase base = (ServerMessageBase) fromServer.readObject();
                     Byte channel = new Byte(type);
                     if(handlers.containsKey(channel)){
-                        handlers.get(new Byte(type)).observe((ServerMessageBase) fromServer.readObject());
-                    }
-                    else {
-                        fromServer.readObject();
+                        ArrayList<OnResult> obs = handlers.get(channel);
+                        for (OnResult r : obs) {
+                            r.observe(base);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;
                 }
-
             }
         }
 
