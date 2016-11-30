@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
  
 public class LoginWindow {
-	private String address,name,pwd;
+	private String name,pwd;
 	private boolean register;
 	private Stage window;
 
@@ -30,9 +30,7 @@ public class LoginWindow {
 		
 		Label serverAddress = new Label("Server Address:");
 		grid.add(serverAddress, 0, 1);
-		TextField serverTextField = new TextField();
-		grid.add(serverTextField, 1, 1);
-		
+
 		Label userName = new Label("User Name:");
 		grid.add(userName, 0, 2);
 
@@ -47,7 +45,6 @@ public class LoginWindow {
 		
 		Button btn1 = new Button("Sign in");
 		btn1.setOnAction(e->{
-			address=serverTextField.getText();
 			name=userTextField.getText();
 			pwd=pwBox.getText();
 			register=false;
@@ -67,7 +64,7 @@ public class LoginWindow {
 
 		window.setScene(scene);
 		window.showAndWait();
-		return new LoginInfo(address,name,pwd,register);
+		return new LoginInfo(name,pwd,register);
 	}
 	
 	private Scene registerScene(){
@@ -99,7 +96,6 @@ public class LoginWindow {
 		
 		Button btn = new Button("Register");
 		btn.setOnAction(e->{
-			address=serverTextField.getText();
 			name=userTextField.getText();
 			pwd=pwBox.getText();
 			register=true;
