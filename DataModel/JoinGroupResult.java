@@ -6,9 +6,6 @@ package assignment7.DataModel;
 public class JoinGroupResult extends ResultBase {
     public String groupName;
     public String[] currentMembers;
-    public JoinGroupResult(){
-
-    }
     public JoinGroupResult(ErrorCode code){
         super(code);
     }

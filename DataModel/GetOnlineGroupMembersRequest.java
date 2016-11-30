@@ -5,9 +5,6 @@ package assignment7.DataModel;
  */
 public class GetOnlineGroupMembersRequest extends RequestBase {
     public String groupName;
-    public GetOnlineGroupMembersRequest(){
-
-    }
     public GetOnlineGroupMembersRequest(String groupName){
         this.groupName = groupName;
     }

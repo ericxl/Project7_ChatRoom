@@ -220,6 +220,7 @@ public class ChatWindow {
         	String text = "Add friend success: " + result.friendDisplayName;
         	statusBar.setText(text);
             System.out.println(text);
+
         } else {
         	String text = "Add friend failed" + result.error.toString();
         	statusBar.setText(text);

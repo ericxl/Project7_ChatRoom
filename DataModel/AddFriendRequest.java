@@ -6,7 +6,6 @@ package assignment7.DataModel;
 public class AddFriendRequest extends RequestBase {
     public String username;
 
-    public AddFriendRequest (){}
     public AddFriendRequest (String _username) {
         this.username = _username;
     }

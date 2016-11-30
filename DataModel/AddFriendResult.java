@@ -5,13 +5,10 @@ package assignment7.DataModel;
  */
 public class AddFriendResult extends ResultBase {
     public String friendUsername;
-    public String friendDisplayName;
-    public AddFriendResult (){}
     public AddFriendResult(ErrorCode code){
         super(code);
     }
-    public AddFriendResult (String _friendUsername, String _friendDisplayName){
+    public AddFriendResult (String _friendUsername){
         this.friendUsername = _friendUsername;
-        this.friendDisplayName = _friendDisplayName;
     }
 }

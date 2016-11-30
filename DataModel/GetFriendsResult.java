@@ -6,7 +6,6 @@ package assignment7.DataModel;
 public class GetFriendsResult extends ResultBase {
     public String[] friends;
 
-    public GetFriendsResult(){}
     public GetFriendsResult(ErrorCode code){
         super(code);
     }
