@@ -9,7 +9,5 @@ import java.util.*;
 public class AccountInfo implements Serializable{
     public String username;
     public String password;
-    public String displayName;
-    public String email;
     public ArrayList<String> friends = new ArrayList<>();
 }
