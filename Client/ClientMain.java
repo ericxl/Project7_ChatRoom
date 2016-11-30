@@ -48,9 +48,12 @@ public class ClientMain extends Application {
 		
 		Button enter = new Button("Send");
 		enter.setOnAction(e->{
-			sendMessage(inputField.getText());
-			String msg = clientName+": "+inputField.getText();
-			ta.appendText(msg);
+			if(!groupChat){
+				sendPrivateMessage(inputField.getText());
+			}else{
+				sendGroupMessage(inputField.getText());
+			}
+			inputField.clear();
 		});
 		
 		enter.setAlignment(Pos.BOTTOM_RIGHT);
@@ -102,11 +105,18 @@ public class ClientMain extends Application {
 			addFriend(friendName.getText());
 		});
 		
+		//TODO
 		TextField groupName = new TextField();
 		Button joinGroup = new Button("Join Group");
+
+		
+		Button toGroup = new Button("To Group");
+		toGroup.setOnAction(e->{
+			groupChat=true;
+		});
 		
 		VBox vb = new VBox();
-		vb.getChildren().addAll(friendList,friendName,addFriend,groupName,joinGroup);
+		vb.getChildren().addAll(friendList,friendName,addFriend,groupName,joinGroup,toGroup);
 		BorderPane mainPane = new BorderPane();
 
 		ta = new TextArea();
@@ -129,6 +139,13 @@ public class ClientMain extends Application {
 		client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
 		client.registerHandler(MsgType.GetFriendsResult, result -> onGetFriends((GetFriendsResult) result));
 		getLogin();
+		
+		if(friends!=null){
+			friendList.getItems().clear();
+			for(String friend:friends){
+				friendList.getItems().add(friend);
+			}
+		}
 	}
 	private void switchToState(CommandState newState){
 		if(state != newState){
@@ -238,8 +255,12 @@ public class ClientMain extends Application {
 		}
 	}
 	
-	private void sendMessage(String message){
+	private void sendPrivateMessage(String message){
 		client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, message));
+	}
+	
+	private void sendGroupMessage(String message){
+		client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, message));
 	}
 	
 	private void addFriend(String friend){
@@ -295,6 +316,8 @@ public class ClientMain extends Application {
 	}
 	
 	private void onReceiveChatMessage(ChatMessage result){
+		String msg = result.from+": "+result.body+"\n";
+		ta.appendText(msg);
 		System.out.println("Received message from: " + result.from + " toUser: " + result.toUser + " toGroup: " + result.toGroup+ " msg: " + result.body);
 	}
 
