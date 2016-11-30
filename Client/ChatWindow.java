@@ -14,20 +14,19 @@ public class ChatWindow {
 
     NetworkClient client;
     enum CommandState {
-        REG,
-        LOGIN,
-        ADD,
         CHAT,
         TOGROUP,
-        TO,
-        JOIN,
-        QUIT
+        TO
     }
     CommandState state = null;
     String currentReceiver = null;
     String clientName = null;
     boolean groupChat = false;
     String[] friends = null;
+
+    TextField friendName;
+    TextField groupName;
+    ComboBox<String> friendList;
     Label statusLabel;
     TextField inputField;
     TextArea ta;
@@ -35,8 +34,6 @@ public class ChatWindow {
     public ChatWindow(NetworkClient client){
         this.client = client;
 
-        client.registerHandler(MsgType.RegisterResult, result-> onRegister((RegisterResult)result));
-        client.registerHandler(MsgType.LoginResult, result-> onLogin((LoginResult) result));
         client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
         client.registerHandler(MsgType.SendPrivateMessageResult, result-> onSendPrivateMessage((SendPrivateMessageResult) result));
         client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
@@ -101,7 +98,7 @@ public class ChatWindow {
         });
         paneForTextField.setCenter(inputField);
 
-        ComboBox<String> friendList = new ComboBox<>();
+        friendList = new ComboBox<>();
         friendList.setMinWidth(100);
         friendList.setOnShowing(e->{
             client.send(MsgType.GetFriendsRequest, null);
@@ -116,16 +113,17 @@ public class ChatWindow {
             currentReceiver=friendList.getValue();
         });
 
-        TextField friendName = new TextField();
+        friendName = new TextField();
         Button addFriend = new Button("Add Friend");
         addFriend.setOnAction(e->{
-            addFriend(friendName.getText());
+            client.send(MsgType.AddFriendRequest, new AddFriendRequest(friendName.getText()));
         });
 
-        //TODO
-        TextField groupName = new TextField();
+        groupName = new TextField();
         Button joinGroup = new Button("Join Group");
-
+        joinGroup.setOnAction(e->{
+            client.send(MsgType.JoinGroupRequest, new JoinGroupRequest(groupName.getText()));
+        });
 
         Button toGroup = new Button("To Group");
         toGroup.setOnAction(e->{
@@ -142,9 +140,15 @@ public class ChatWindow {
         mainPane.setRight(vb);
 
         Scene scene = new Scene(mainPane, 650, 400);
-        primaryStage.setTitle("Client");
+        primaryStage.setTitle("Hello " + clientName + "!");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+
+    }
+
+    public void setClientName(String name){
+        clientName = name;
     }
 
     private void switchToState(CommandState newState){
@@ -156,22 +160,10 @@ public class ChatWindow {
                 inputField.clear();
                 String placeHolder = "";
                 switch (newState){
-                    case ADD:
-                        placeHolder = "YOUR_FRIEND_USER_NAME";
-                        break;
                     case CHAT:
                         placeHolder = "YOUR_MESSAGE";
                         break;
-                    case REG:
-                        placeHolder = "USERNAME PASSWORD DISPLAY_NAME EMAIL";
-                        break;
-                    case LOGIN:
-                        placeHolder = "USERNAME PASSWORD";
-                        break;
                     case TOGROUP:
-                        placeHolder = "GROUP_NAME";
-                        break;
-                    case JOIN:
                         placeHolder = "GROUP_NAME";
                         break;
                     case TO:
@@ -180,43 +172,13 @@ public class ChatWindow {
                 }
                 inputField.setPromptText(placeHolder);
             });
-            if(state == CommandState.QUIT){
-                System.exit(0);
-            }
         }
     }
     private void ProcessCommand (String command){
         Platform.runLater(() -> {
             inputField.clear();
         });
-        if(state == CommandState.REG){
-            try {
-                String[] s = command.split(" ");
-                client.send(MsgType.RegisterRequest, new RegisterRequest(s[0], s[1]));
-                switchToState(CommandState.LOGIN);
-            }catch(Throwable e){
-
-            }
-        }
-        else if(state == CommandState.LOGIN){
-            try {
-                String[] s = command.split(" ");
-                client.send(MsgType.LoginRequest, new LoginRequest(s[0], s[1]));
-                switchToState(CommandState.TO);
-            }catch(Throwable e){
-
-            }
-        }
-        else if(state == CommandState.ADD){
-            try {
-                String[] s = command.split(" ");
-                client.send(MsgType.AddFriendRequest, new AddFriendRequest(s[0]));
-                switchToState(CommandState.TO);
-            }catch(Throwable e){
-
-            }
-        }
-        else if(state == CommandState.CHAT){
+        if(state == CommandState.CHAT){
             try {
                 if(groupChat){
                     client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, command));
@@ -238,21 +200,6 @@ public class ChatWindow {
             currentReceiver = command;
             switchToState(CommandState.CHAT);
         }
-        else if(state == CommandState.JOIN){
-            client.send(MsgType.JoinGroupRequest, new JoinGroupRequest(command));
-            switchToState(CommandState.TOGROUP);
-        }
-    }
-
-    private void getLogin(){
-        /*LoginWindow lw = new LoginWindow();
-        LoginInfo login = lw.display();
-        if(login.register){
-            client.send(MsgType.RegisterRequest, new RegisterRequest(login.userName, login.passWord));
-        }else{
-            client.send(MsgType.LoginRequest, new LoginRequest(login.userName, login.passWord));
-            clientName=login.userName;
-        }*/
     }
 
     private void sendPrivateMessage(String message){
@@ -261,39 +208,6 @@ public class ChatWindow {
 
     private void sendGroupMessage(String message){
         client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, message));
-    }
-
-    private void addFriend(String friend){
-        client.send(MsgType.AddFriendRequest, new AddFriendRequest(friend));
-    }
-
-
-    private void onRegister(RegisterResult result){
-        if(result.error == null){
-            System.out.println("Successfully registered: " + result.username);
-        } else {
-            System.out.println("Register failed" + result.error.toString());
-        }
-        Platform.runLater(new Runnable(){
-            @Override
-            public void run() {
-                getLogin();
-            }
-        });
-    }
-
-    private void onLogin(LoginResult result){
-        if(result.error == null){
-            System.out.println("login success");
-        } else {
-            System.out.println("login failed " + result.error.toString());
-            Platform.runLater(new Runnable(){
-                @Override
-                public void run() {
-                    getLogin();
-                }
-            });
-        }
     }
 
     private void onAddFriend(AddFriendResult result){
@@ -305,7 +219,7 @@ public class ChatWindow {
     }
 
     private void onGetFriends(GetFriendsResult result){
-        friends=result.friends;
+        friends = result.friends;
     }
 
     private void onSendPrivateMessage (SendPrivateMessageResult result){
