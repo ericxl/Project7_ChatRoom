@@ -60,6 +60,7 @@ public class ChatWindow {
         statusLabel.setMinWidth(100);
         statusLabel.setAlignment(Pos.CENTER);
         paneForTextField.setLeft(statusLabel);
+        statusBar=new Label();
 
         Button enter = new Button("Send");
         enter.setOnAction(e->{
@@ -217,7 +218,8 @@ public class ChatWindow {
 
     private void onAddFriend(AddFriendResult result){
         if(result.error == null){
-        	String text = "Add friend success: " + result.friendDisplayName;
+        	String text = "Add friend success: " + result.friendUsername;
+        	
         	statusBar.setText(text);
             System.out.println(text);
 
