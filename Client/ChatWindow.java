@@ -30,6 +30,7 @@ public class ChatWindow {
     Label statusLabel;
     TextField inputField;
     TextArea ta;
+    Label statusBar;
 
     public ChatWindow(NetworkClient client){
         this.client = client;
@@ -119,11 +120,13 @@ public class ChatWindow {
             client.send(MsgType.AddFriendRequest, new AddFriendRequest(friendName.getText()));
         });
 
+
         groupName = new TextField();
         Button joinGroup = new Button("Join Group");
         joinGroup.setOnAction(e->{
             client.send(MsgType.JoinGroupRequest, new JoinGroupRequest(groupName.getText()));
         });
+
 
         Button toGroup = new Button("To Group");
         toGroup.setOnAction(e->{
@@ -131,7 +134,9 @@ public class ChatWindow {
         });
 
         VBox vb = new VBox();
-        vb.getChildren().addAll(friendList,friendName,addFriend,groupName,joinGroup,toGroup);
+        vb.setPadding(new Insets(5, 5, 5, 5));
+        Label blank = new Label();
+        vb.getChildren().addAll(statusBar,friendList,friendName,addFriend,blank,groupName,joinGroup,toGroup);
         BorderPane mainPane = new BorderPane();
 
         ta = new TextArea();
@@ -212,9 +217,14 @@ public class ChatWindow {
 
     private void onAddFriend(AddFriendResult result){
         if(result.error == null){
-            System.out.println("Add friend success: " + result.friendUsername);
+        	String text = "Add friend success: " + result.friendDisplayName;
+        	statusBar.setText(text);
+            System.out.println(text);
+
         } else {
-            System.out.println("add friend failed" + result.error.toString());
+        	String text = "Add friend failed" + result.error.toString();
+        	statusBar.setText(text);
+            System.out.println(text);
         }
     }
 
@@ -224,9 +234,13 @@ public class ChatWindow {
 
     private void onSendPrivateMessage (SendPrivateMessageResult result){
         if(result.error == null){
-            System.out.println("send private msg success");
+        	String text = "Send private msg success";
+        	statusBar.setText(text);
+            System.out.println(text);
         } else {
-            System.out.println("send private msg failed" + result.error.toString());
+        	String text = "Send private msg failed" + result.error.toString();
+        	statusBar.setText(text);
+            System.out.println(text);
         }
     }
 
@@ -238,17 +252,25 @@ public class ChatWindow {
 
     private void onSendGroupMessage (SendGroupMessageResult result){
         if(result.error == null){
-            System.out.println("send group msg success");
+        	String text = "Send group msg success";
+        	statusBar.setText(text);
+            System.out.println(text);
         } else {
-            System.out.println("send group msg failed" + result.error.toString());
+        	String text = "Send group msg failed" + result.error.toString();
+        	statusBar.setText(text);
+            System.out.println(text);
         }
     }
 
     private void onJoinGroup (JoinGroupResult result){
         if(result.error == null){
-            System.out.println("join group: " + result.groupName + " success!");
+        	String text = "join group: " + result.groupName + " success!";
+        	statusBar.setText(text);
+            System.out.println(text);
         } else {
-            System.out.println("join group failed" + result.error.toString());
+        	String text = "join group failed" + result.error.toString();
+        	statusBar.setText(text);
+            System.out.println(text);
         }
     }
 
