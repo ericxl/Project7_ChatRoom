@@ -7,7 +7,6 @@ public class RegisterResult extends ResultBase {
     public String username;
     public String password;
 
-    public RegisterResult(){}
     public RegisterResult(ErrorCode code) {
         super(code);
     }

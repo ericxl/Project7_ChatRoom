@@ -5,7 +5,6 @@ package assignment7.DataModel;
  */
 public class LoginResult extends ResultBase {
     public String username;
-    public LoginResult(){}
     public LoginResult(ErrorCode code){
         super(code);
     }

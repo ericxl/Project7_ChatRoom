@@ -63,6 +63,8 @@ public class ClientAPIHandler implements Runnable {
                     case MsgType.GetOnlineGroupMembersRequest:
                         getOnlineGroupMembers((GetOnlineGroupMembersRequest) reader.readObject());
                         break;
+                    case MsgType.ChangePasswordRequest:
+                        changePassword((ChangePasswordRequest) reader.readObject());
                 }
             } catch (Exception e) {
                 if(name != null){
@@ -167,7 +169,7 @@ public class ClientAPIHandler implements Runnable {
                 info.friends.add(req.username);
                 server.saveDatabase();
             }
-            send(MsgType.AddFriendResult, new AddFriendResult());
+            send(MsgType.AddFriendResult, new AddFriendResult(req.username));
         }
         else {
             send(MsgType.AddFriendResult, new AddFriendResult(ErrorCode.UserDoesNotExist));
@@ -287,6 +289,23 @@ public class ClientAPIHandler implements Runnable {
             send(MsgType.GetOnlineGroupMembersResult, new GetOnlineGroupMembersResult(members));
         }else {
             send(MsgType.GetOnlineGroupMembersResult, new GetOnlineGroupMembersResult(ErrorCode.GroupNotJoined));
+        }
+    }
+
+    private void changePassword(ChangePasswordRequest req){
+        if(!server.accountDb.containsKey(req.username)){
+            send(MsgType.ChangePasswordResult, new LoginResult(ErrorCode.UserDoesNotExist));
+        }
+        else{
+            AccountInfo info = server.accountDb.get(req.username);
+            if(req.oldPassword.equals(info.password)){
+                info.password = req.newPassword;
+                server.saveDatabase();
+                send(MsgType.ChangePasswordResult, new LoginResult(req.username));
+            }
+            else {
+                send(MsgType.ChangePasswordResult, new LoginResult(ErrorCode.WrongCredentials));
+            }
         }
     }
 

@@ -5,9 +5,6 @@ package assignment7.DataModel;
  */
 public class LeaveGroupResult extends ResultBase {
     public String groupName;
-    public LeaveGroupResult(){
-
-    }
     public LeaveGroupResult(ErrorCode code){
         super(code);
     }
