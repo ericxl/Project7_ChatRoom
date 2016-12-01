@@ -42,6 +42,7 @@ public class AccountWindow {
     ComboBox<Text> friendList;
     ComboBox<String> groupList;
     Label statusBar;
+    Label friendStatus;
 
     Map<String, ChatWindow> privateChats = new HashMap<>();
     Map<String, ChatWindow> groupChats = new HashMap<>();
@@ -56,6 +57,8 @@ public class AccountWindow {
         client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
         client.registerHandler(MsgType.GetFriendsResult, result -> onGetFriends((GetFriendsResult) result));
         client.registerHandler(MsgType.ChatMessage, result -> onReceiveChatMessage((ChatMessage) result));
+        client.registerHandler(MsgType.FriendOnlineMessage, result -> onReceiveFriendOnlineMessage((FriendOnlineMessage) result));
+        client.registerHandler(MsgType.FriendOfflineMessage, result -> onReceiveFriendOfflineMessage((FriendOfflineMessage) result));
     }
 
     public void start(){
@@ -131,7 +134,8 @@ public class AccountWindow {
         VBox vb = new VBox();
         vb.setPadding(new Insets(5, 5, 5, 5));
         Label blank = new Label();
-        vb.getChildren().addAll(statusBar,friendList,friendName,addFriend,blank,groupList,groupName,joinGroup);
+        friendStatus = new Label();
+        vb.getChildren().addAll(statusBar,friendList,friendName,addFriend,blank,groupList,groupName,joinGroup, friendStatus);
         BorderPane mainPane = new BorderPane();
 
         mainPane.setCenter(vb);
@@ -280,5 +284,59 @@ public class AccountWindow {
             }
         }
         //save
+    }
+
+    private void onReceiveFriendOnlineMessage(FriendOnlineMessage msg){
+        ArrayList<String> onlineAL = new ArrayList<>(Arrays.asList(onlineFriends));
+        if(!onlineAL.contains(msg.friendUsername)){
+            onlineAL.add(msg.friendUsername);
+        }
+
+        if(friends!=null){
+            friendList.getItems().clear();
+            try{
+                for(String friend:friends){
+                    Text currentText = new Text(friend);
+                    if(onlineAL.contains(friend)){
+                        currentText.setFill(Color.GREEN);
+                    }
+                    friendList.getItems().add(currentText);
+                }
+            }catch (Exception E){
+
+            }
+        }
+
+        Platform.runLater(()->{
+            friendStatus.setText("Your friend: " + msg.friendUsername + " got online!");
+            friendStatus.setTextFill(Color.GREEN);
+        });
+    }
+
+    private void onReceiveFriendOfflineMessage(FriendOfflineMessage msg){
+        ArrayList<String> onlineAL = new ArrayList<>(Arrays.asList(onlineFriends));
+        if(onlineAL.contains(msg.friendUsername)){
+            onlineAL.remove(msg.friendUsername);
+        }
+
+        if(friends!=null){
+            friendList.getItems().clear();
+            try{
+                for(String friend:friends){
+                    Text currentText = new Text(friend);
+                    if(onlineAL.contains(friend)){
+                        currentText.setFill(Color.GREEN);
+                    }
+                    friendList.getItems().add(currentText);
+                }
+            }catch (Exception E){
+
+            }
+        }
+
+        Platform.runLater(()->{
+            friendStatus.setText("Your friend: " + msg.friendUsername + " got offline!");
+            friendStatus.setTextFill(Color.RED);
+        });
     }
 }

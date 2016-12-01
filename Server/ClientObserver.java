@@ -16,6 +16,7 @@ import assignment7.DataModel.*;
 
 public class ClientObserver extends ObjectOutputStream implements Observer {
 	private String userName;
+	private ArrayList<String> friends;
 	private Set<String> joinedGroups = new HashSet<>();
 	public ClientObserver(OutputStream out) throws IOException {
 		super(out);
@@ -42,7 +43,9 @@ public class ClientObserver extends ObjectOutputStream implements Observer {
 	public void setName(String userName){
 		this.userName = userName;
 	}
-	
+	public void setFriends(ArrayList<String> _friends){
+		this.friends = _friends;
+	}
 	@Override
 	public void update(Observable o, Object arg) {
 		try {
@@ -70,12 +73,37 @@ public class ClientObserver extends ObjectOutputStream implements Observer {
 						}
 					}
 				}
-			} else if(message.channel == MsgType.JoinedGroupMessage){
+			}
+			else if(message.channel == MsgType.JoinedGroupMessage){
 				JoinedGroupMessage msg = (JoinedGroupMessage) message.message;
 
 				if(joinedGroups.contains(msg.joinedGroup)){
 					try {
 						this.writeByte(MsgType.JoinedGroupMessage);
+						this.writeObject(msg);
+						this.flush();
+					}
+					catch (IOException e){
+					}
+				}
+			}
+			else if (message.channel == MsgType.FriendOnlineMessage){
+				FriendOnlineMessage msg = (FriendOnlineMessage) message.message;
+				if(friends.contains(msg.friendUsername)){
+					try {
+						this.writeByte(MsgType.FriendOnlineMessage);
+						this.writeObject(msg);
+						this.flush();
+					}
+					catch (IOException e){
+					}
+				}
+			}
+			else if (message.channel == MsgType.FriendOfflineMessage){
+				FriendOfflineMessage msg = (FriendOfflineMessage) message.message;
+				if(friends.contains(msg.friendUsername)){
+					try {
+						this.writeByte(MsgType.FriendOfflineMessage);
 						this.writeObject(msg);
 						this.flush();
 					}

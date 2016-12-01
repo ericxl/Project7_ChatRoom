@@ -146,6 +146,12 @@ public class ClientAPIHandler implements Runnable {
                 server.onlineClients.add(req.username);
                 server.addObserver(writer);
                 writer.setName(name);
+                writer.setFriends(info.friends);
+                FriendOnlineMessage online = new FriendOnlineMessage();
+                online.friendUsername = req.username;
+                ObservableMessage msg = new ObservableMessage(MsgType.FriendOnlineMessage, online);
+                server.notifyMessage(msg);
+
                 send(MsgType.LoginResult, new LoginResult(req.username));
             }
             else {
@@ -160,6 +166,12 @@ public class ClientAPIHandler implements Runnable {
         server.onlineClients.remove(name);
         server.removeFromAllGroups(name);
         server.deleteObserver(writer);
+
+        FriendOfflineMessage offline = new FriendOfflineMessage();
+        offline.friendUsername = name;
+        ObservableMessage msg = new ObservableMessage(MsgType.FriendOfflineMessage, offline);
+        server.notifyMessage(msg);
+
         stop=true;
     }
 

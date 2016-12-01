@@ -44,6 +44,8 @@ public class MsgType {
     public static final byte GetOnlineGroupMembersResult = GetOnlineGroupMembersRequest + _offset;
     public static final byte ChangePasswordResult = ChangePasswordRequest + _offset;
 
+    public static final byte FriendOnlineMessage = 124;
+    public static final byte FriendOfflineMessage = 125;
     public static final byte JoinedGroupMessage = 126;
     public static final byte ChatMessage = 127;
 }
