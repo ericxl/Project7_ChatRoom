@@ -17,7 +17,9 @@ public class LoginWindow {
 	private Stage window;
 
 	private TextField userTextField;
+	private TextField username;
 	private PasswordField pwBox;
+	private PasswordField oldPwBox;
 	private PasswordField newPwBox;
 	private Label status;
 	private Label changePwdStatus;
@@ -132,10 +134,10 @@ public class LoginWindow {
 		fieldGrid.setVgap(10);
 		fieldGrid.setPadding(new Insets(25, 25, 25, 25));
 
-		Label userName = new Label("User Name:");
-		userTextField = new TextField();
+		Label nameLabel = new Label("User Name:");
+		username = new TextField();
 		Label pw = new Label("Old Password:");
-		pwBox = new PasswordField();
+		oldPwBox = new PasswordField();
 		Label newPw = new Label("New Password:");
 		newPwBox = new PasswordField();
 		Button back = new Button("Back");
@@ -145,16 +147,16 @@ public class LoginWindow {
 		
 		Button enter = new Button("enter");
 		enter.setOnAction(e->{
-			String name=userTextField.getText();
-			String oldPwd=pwBox.getText();
+			String name=username.getText();
+			String oldPwd=oldPwBox.getText();
 			String newPwd = newPwBox.getText();
 			client.send(MsgType.ChangePasswordRequest, new ChangePasswordRequest(name, oldPwd,newPwd));
 		});
 		
-		fieldGrid.add(userName, 0, 0);
-		fieldGrid.add(userTextField, 1, 0);
+		fieldGrid.add(nameLabel, 0, 0);
+		fieldGrid.add(username, 1, 0);
 		fieldGrid.add(pw, 0, 1);
-		fieldGrid.add(pwBox, 1, 1);
+		fieldGrid.add(oldPwBox, 1, 1);
 		fieldGrid.add(newPw, 0, 2);
 		fieldGrid.add(newPwBox, 1, 2);
 		fieldGrid.add(enter, 1, 3);
@@ -163,7 +165,7 @@ public class LoginWindow {
 
 		changePwdStatus = new Label();
 		changePwdStatus.setTextAlignment(TextAlignment.CENTER);
-		grid.add(status, 0, 1);
+		grid.add(changePwdStatus, 0, 1);
 
 
 		VBox hbBtn = new VBox(10);
