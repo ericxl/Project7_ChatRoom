@@ -272,7 +272,13 @@ public class ClientAPIHandler implements Runnable {
             return;
         }
         AccountInfo thisAccount = server.accountDb.get(name);
-        send(MsgType.GetFriendsResult, new GetFriendsResult(thisAccount.friends.toArray(new String[0])));
+        ArrayList<String> onlineFriends = new ArrayList<>();
+        for(String friend: thisAccount.friends){
+            if(server.onlineClients.contains(friend)){
+                onlineFriends.add(friend);
+            }
+        }
+        send(MsgType.GetFriendsResult, new GetFriendsResult(thisAccount.friends.toArray(new String[0]), onlineFriends.toArray(new String[0])));
     }
 
     private void getOnlineGroupMembers(GetOnlineGroupMembersRequest req){

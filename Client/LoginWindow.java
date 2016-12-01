@@ -195,7 +195,7 @@ public class LoginWindow {
 	private void onLogin(LoginResult result){
 		if(result.error == null){
 			Platform.runLater(() -> {
-				ChatWindow w = new ChatWindow(client);
+				AccountWindow w = new AccountWindow(client);
 				w.setClientName(result.username);
 				w.start();
 				window.close();
