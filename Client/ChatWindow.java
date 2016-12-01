@@ -12,14 +12,8 @@ import javafx.stage.*;
  * Created by Eric on 11/30/16.
  */
 public class ChatWindow {
-
     NetworkClient client;
-    enum CommandState {
-        CHAT,
-        TOGROUP,
-        TO
-    }
-    CommandState state = null;
+
     String currentReceiver = null;
     String clientName = null;
     boolean groupChat = false;
@@ -65,10 +59,10 @@ public class ChatWindow {
 
         Button enter = new Button("Send");
         enter.setOnAction(e->{
-            if(!groupChat){
-                sendPrivateMessage(inputField.getText());
-            }else{
-                sendGroupMessage(inputField.getText());
+            if(groupChat){
+                client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, inputField.getText()));
+            }else {
+                client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, inputField.getText()));
             }
             inputField.clear();
         });
@@ -80,24 +74,12 @@ public class ChatWindow {
         inputField = new TextField();
         inputField.setAlignment(Pos.BOTTOM_LEFT);
         inputField.setOnAction(event -> {
-            ProcessCommand(inputField.getText());
-        });
-        inputField.textProperty().addListener((ov, oldValue, newValue) -> {
-            String prompt = ov.getValue();
-            if(prompt.length() > 3){
-                if(prompt.charAt(prompt.length() - 1) == ' ' && prompt.charAt(0) == '-'){
-                    String command = prompt.substring(1, prompt.length() - 1).toUpperCase();
-                    try {
-                        switchToState(CommandState.valueOf(command));
-                    }
-                    catch (IllegalArgumentException e){
-                    }
-                    Platform.runLater(() -> {
-                        inputField.clear();
-                    });
-
-                }
+            if(groupChat){
+                client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, inputField.getText()));
+            }else {
+                client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, inputField.getText()));
             }
+            inputField.clear();
         });
         paneForTextField.setCenter(inputField);
 
@@ -156,65 +138,6 @@ public class ChatWindow {
 
     public void setClientName(String name){
         clientName = name;
-    }
-
-    private void switchToState(CommandState newState){
-        if(state != newState){
-            state = newState;
-            String lowerCommand  = state.toString().toLowerCase();
-            Platform.runLater(() -> {
-                statusLabel.setText(Character.toUpperCase(lowerCommand.charAt(0)) + lowerCommand.substring(1));
-                inputField.clear();
-                String placeHolder = "";
-                switch (newState){
-                    case CHAT:
-                        placeHolder = "YOUR_MESSAGE";
-                        break;
-                    case TOGROUP:
-                        placeHolder = "GROUP_NAME";
-                        break;
-                    case TO:
-                        placeHolder = "FRIEND_NAME";
-                        break;
-                }
-                inputField.setPromptText(placeHolder);
-            });
-        }
-    }
-    private void ProcessCommand (String command){
-        Platform.runLater(() -> {
-            inputField.clear();
-        });
-        if(state == CommandState.CHAT){
-            try {
-                if(groupChat){
-                    client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, command));
-                }
-                else {
-                    client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, command));
-                }
-            }catch(Throwable e){
-
-            }
-        }
-        else if(state == CommandState.TOGROUP){
-            groupChat = true;
-            currentReceiver = command;
-            switchToState(CommandState.CHAT);
-        }
-        else if(state == CommandState.TO){
-            groupChat = false;
-            currentReceiver = command;
-            switchToState(CommandState.CHAT);
-        }
-    }
-
-    private void sendPrivateMessage(String message){
-        client.send(MsgType.SendPrivateMessageRequest, new SendPrivateMessageRequest(currentReceiver, message));
-    }
-
-    private void sendGroupMessage(String message){
-        client.send(MsgType.SendGroupMessageRequest, new SendGroupMessageRequest(currentReceiver, message));
     }
 
     private void onAddFriend(AddFriendResult result){
