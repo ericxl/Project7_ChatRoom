@@ -38,8 +38,6 @@ public class AccountWindow {
         client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
         client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
         client.registerHandler(MsgType.GetFriendsResult, result -> onGetFriends((GetFriendsResult) result));
-
-        client.send(MsgType.GetFriendsRequest, new GetFriendsRequest());
     }
 
     public void start(){
@@ -54,23 +52,6 @@ public class AccountWindow {
 
         friendList = new ComboBox<>();
         friendList.setMinWidth(100);
-        friendList.setOnShowing(e->{
-            if(friends!=null){
-                friendList.getItems().clear();
-                try{
-                    for(String friend:friends){
-                        Text currentText = new Text(friend);
-                        ArrayList<String> onlineAL = new ArrayList<String>(Arrays.asList(onlineFriends));
-                        if(onlineAL.contains(friend)){
-                            currentText.setFill(Color.GREEN);
-                        }
-                        friendList.getItems().add(currentText);
-                    }
-                }catch (Exception E){
-
-                }
-            }
-        });
         friendList.setOnAction(e->{
             String friendName = friendList.getValue().getText();
             if(friendName == null || friendName.isEmpty()){
@@ -133,7 +114,7 @@ public class AccountWindow {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-
+        client.send(MsgType.GetFriendsRequest, new GetFriendsRequest());
     }
 
     public void setClientName(String name){
@@ -162,6 +143,22 @@ public class AccountWindow {
     private void onGetFriends(GetFriendsResult result){
         friends = result.friends;
         onlineFriends=result.onlineFriends;
+
+        if(friends!=null){
+            friendList.getItems().clear();
+            try{
+                for(String friend:friends){
+                    Text currentText = new Text(friend);
+                    ArrayList<String> onlineAL = new ArrayList<>(Arrays.asList(onlineFriends));
+                    if(onlineAL.contains(friend)){
+                        currentText.setFill(Color.GREEN);
+                    }
+                    friendList.getItems().add(currentText);
+                }
+            }catch (Exception E){
+
+            }
+        }
     }
 
     private void onJoinGroup (JoinGroupResult result){
