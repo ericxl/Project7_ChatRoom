@@ -10,12 +10,16 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.*;
 
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by Eric on 11/30/16.
  */
 public class AccountWindow {
+    private static final String groupChatsHistroyFileName = "_groupChats.his";
+    private static final String privateChatsHistroyFileName = "_privateChats.his";
+
     NetworkClient client;
 
     String clientName = null;
@@ -32,12 +36,16 @@ public class AccountWindow {
     Map<String, ChatWindow> privateChats = new HashMap<>();
     Map<String, ChatWindow> groupChats = new HashMap<>();
 
+    Map<String, ArrayList<ChatMessage>> privateHistory = new HashMap<>();
+    Map<String, ArrayList<ChatMessage>> groupHistory = new HashMap<>();
+
     public AccountWindow(NetworkClient client){
         this.client = client;
 
         client.registerHandler(MsgType.AddFriendResult, result-> onAddFriend((AddFriendResult) result));
         client.registerHandler(MsgType.JoinGroupResult, result-> onJoinGroup((JoinGroupResult) result));
         client.registerHandler(MsgType.GetFriendsResult, result -> onGetFriends((GetFriendsResult) result));
+        client.registerHandler(MsgType.ChatMessage, result -> onReceiveChatMessage((ChatMessage) result));
     }
 
     public void start(){
@@ -63,8 +71,13 @@ public class AccountWindow {
                 w.show();
             }
             else {
+                ArrayList<ChatMessage> his = new ArrayList<>();
+                if(privateHistory.containsKey(friendName)){
+                    his = privateHistory.get(friendName);
+                }
                 ChatWindow w = new ChatWindow(client, clientName, friendName, false);
-                w.start();
+
+                w.start(his);
                 privateChats.put(friendName, w);
             }
         });
@@ -89,8 +102,12 @@ public class AccountWindow {
                 w.show();
             }
             else {
-                ChatWindow w = new ChatWindow(client, clientName, groupList.getValue(), true);
-                w.start();
+                ArrayList<ChatMessage> his = new ArrayList<>();
+                if(groupHistory.containsKey(groupName)){
+                    his = groupHistory.get(groupName);
+                }
+                ChatWindow w = new ChatWindow(client, clientName, groupName, true);
+                w.start(his);
                 privateChats.put(groupName, w);
             }
         });
@@ -115,6 +132,25 @@ public class AccountWindow {
         primaryStage.show();
 
         client.send(MsgType.GetFriendsRequest, new GetFriendsRequest());
+
+        try {
+            FileInputStream fis = new FileInputStream(clientName + groupChatsHistroyFileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            groupHistory = (Map<String, ArrayList<ChatMessage>>) ois.readObject();
+            ois.close();
+        }
+        catch(Exception ex){
+            groupHistory = new HashMap<>();
+        }
+        try {
+            FileInputStream fis = new FileInputStream(clientName + privateChatsHistroyFileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            privateHistory = (Map<String, ArrayList<ChatMessage>>) ois.readObject();
+            ois.close();
+        }
+        catch(Exception ex){
+            privateHistory = new HashMap<>();
+        }
     }
 
     public void setClientName(String name){
@@ -186,5 +222,53 @@ public class AccountWindow {
             	statusBar.setTextFill(Color.RED);
         	});
         }
+    }
+
+    private void onReceiveChatMessage(ChatMessage msg){
+        if(msg.toGroup != null){
+            if(groupHistory.containsKey(msg.toGroup)){
+                ArrayList<ChatMessage> h = groupHistory.get(msg.toGroup);
+                h.add(msg);
+            }
+            else {
+                ArrayList<ChatMessage> h = new ArrayList<>();
+                h.add(msg);
+                groupHistory.put(msg.toGroup, h);
+            }
+
+            try {
+                FileOutputStream fos = new FileOutputStream(clientName + groupChatsHistroyFileName);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(groupHistory);
+                oos.close();
+            }
+            catch(Exception ex){
+            }
+        } else if(msg.toUser != null){
+            String other = msg.toUser;
+            if(other.equals(clientName)){
+                other = msg.from;
+            }
+
+            if(privateHistory.containsKey(other)){
+                ArrayList<ChatMessage> h = privateHistory.get(other);
+                h.add(msg);
+            }
+            else {
+                ArrayList<ChatMessage> h = new ArrayList<>();
+                h.add(msg);
+                privateHistory.put(other, h);
+            }
+
+            try {
+                FileOutputStream fos = new FileOutputStream(clientName  + privateChatsHistroyFileName);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(privateHistory);
+                oos.close();
+            }
+            catch(Exception ex){
+            }
+        }
+        //save
     }
 }

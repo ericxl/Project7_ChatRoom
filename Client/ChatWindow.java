@@ -6,6 +6,9 @@ import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
+
+import java.util.*;
+
 /**
  * Created by Eric on 11/30/16.
  */
@@ -34,7 +37,7 @@ public class ChatWindow {
         client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
     }
 
-    public void start(){
+    public void start(ArrayList<ChatMessage> history){
         primaryStage = new Stage();
 
         BorderPane paneForTextField = new BorderPane();
@@ -71,6 +74,12 @@ public class ChatWindow {
         ta = new TextArea();
         mainPane.setCenter(new ScrollPane(ta));
         mainPane.setBottom(paneForTextField);
+
+        //construct history
+        for (ChatMessage result:history) {
+            String msg = result.from+": "+result.body+"\n";
+            ta.appendText(msg);
+        }
 
         Scene scene = new Scene(mainPane, 650, 400);
         primaryStage.setTitle(recipient);
@@ -110,7 +119,9 @@ public class ChatWindow {
                 System.out.println("Received message from: " + result.from + " toUser: " + result.toUser + " toGroup: " + result.toGroup+ " msg: " + result.body);
             }
         }else{
-            if (result.toUser != null && result.toUser.equals(recipient) || result.toUser.equals(this.self)) {
+            if (result.toUser != null &&
+                    (result.toUser.equals(recipient) ||
+                    result.toUser.equals(this.self))) {
                 String msg = result.from+": "+result.body+"\n";
                 ta.appendText(msg);
                 System.out.println("Received message from: " + result.from + " toUser: " + result.toUser + " toGroup: " + result.toGroup+ " msg: " + result.body);
