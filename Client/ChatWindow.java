@@ -1,5 +1,7 @@
 package assignment7.Client;
 
+import java.util.Set;
+
 import assignment7.DataModel.*;
 import javafx.application.*;
 import javafx.geometry.*;
@@ -7,6 +9,7 @@ import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.*;
 /**
  * Created by Eric on 11/30/16.
@@ -18,10 +21,11 @@ public class ChatWindow {
     String clientName = null;
     boolean groupChat = false;
     String[] friends = null;
+    Set<String> onlineFriends=null;
 
     TextField friendName;
     TextField groupName;
-    ComboBox<String> friendList;
+    ComboBox<Text> friendList;
     Label statusLabel;
     TextField inputField;
     TextArea ta;
@@ -89,13 +93,22 @@ public class ChatWindow {
             client.send(MsgType.GetFriendsRequest, null);
             if(friends!=null){
                 friendList.getItems().clear();
-                for(String friend:friends){
-                    friendList.getItems().add(friend);
+                try{
+                	for(String friend:friends){
+                    	Text currentText = new Text(friend);
+                    	if(onlineFriends.contains(friend)){
+                    		currentText.setFill(Color.GREEN);
+                    	}
+                        friendList.getItems().add(currentText);
+                    }
+                }catch (Exception E){
+                	
                 }
+                
             }
         });
         friendList.setOnAction(e->{
-            currentReceiver=friendList.getValue();
+            currentReceiver=friendList.getValue().getText();
         });
 
         friendName = new TextField();
@@ -133,7 +146,6 @@ public class ChatWindow {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-
     }
 
     public void setClientName(String name){
@@ -161,6 +173,7 @@ public class ChatWindow {
 
     private void onGetFriends(GetFriendsResult result){
         friends = result.friends;
+        onlineFriends=result.onlineFriends;
     }
 
     private void onSendPrivateMessage (SendPrivateMessageResult result){
