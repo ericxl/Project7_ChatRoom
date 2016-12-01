@@ -5,7 +5,6 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.*;
 /**
  * Created by Eric on 11/30/16.
@@ -27,10 +26,10 @@ public class ChatWindow {
 
         if(isGroup){
             client.registerHandler(MsgType.SendGroupMessageResult, result-> onSendGroupMessage((SendGroupMessageResult) result));
+            client.registerHandler(MsgType.JoinedGroupMessage, result -> onReceiveJoinedGroupMessage((JoinedGroupMessage) result));
         }
         else{
             client.registerHandler(MsgType.SendPrivateMessageResult, result-> onSendPrivateMessage((SendPrivateMessageResult) result));
-
         }
         client.registerHandler(MsgType.ChatMessage, msg -> onReceiveChatMessage((ChatMessage) msg));
     }
@@ -117,6 +116,13 @@ public class ChatWindow {
                 System.out.println("Received message from: " + result.from + " toUser: " + result.toUser + " toGroup: " + result.toGroup+ " msg: " + result.body);
             }
         }
+    }
 
+    private void onReceiveJoinedGroupMessage(JoinedGroupMessage result){
+        if(recipient.equals(result.joinedGroup)){
+            String msg = result.username+" just joined this group. Say hello!\n";
+            ta.appendText(msg);
+        }
+        System.out.println("Received joined group message from " + result.username);
     }
 }

@@ -76,22 +76,22 @@ public class ClientAPIHandler implements Runnable {
         if(reader!=null){
             try {
                 reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
             }
         }
         if(writer!=null){
             try {
                 writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
             }
         }
         if(sock!=null){
             try {
                 sock.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
             }
         }
     }
@@ -245,6 +245,13 @@ public class ClientAPIHandler implements Runnable {
         server.addToGroup(name, req.groupName);
         writer.joinGroup(req.groupName);
         String[] members = server.getCurrentMembers(req.groupName);
+
+        JoinedGroupMessage join = new JoinedGroupMessage();
+        join.joinedGroup = req.groupName;
+        join.username = name;
+        ObservableMessage msg = new ObservableMessage(MsgType.JoinedGroupMessage, join);
+        server.notifyMessage(msg);
+
         send(MsgType.JoinGroupResult, new JoinGroupResult(req.groupName, members));
     }
 

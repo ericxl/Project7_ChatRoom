@@ -62,6 +62,16 @@ public class ClientObserver extends ObjectOutputStream implements Observer {
 				}
 			} else if(message.channel == MsgType.JoinedGroupMessage){
 				JoinedGroupMessage msg = (JoinedGroupMessage) message.message;
+
+				if(joinedGroups.contains(msg.joinedGroup)){
+					try {
+						this.writeByte(MsgType.JoinedGroupMessage);
+						this.writeObject(msg);
+						this.flush();
+					}
+					catch (IOException e){
+					}
+				}
 			}
 
 		}
